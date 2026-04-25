@@ -8,34 +8,31 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'DM Sans', sans-serif; background: #F2F5EE; color: #1E2D1E; min-height: 100vh; }
-
-  /* Header */
-  header { background: #2D4A2D; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 8px; }
+  header { background: #2D4A2D; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.2); gap: 8px; flex-wrap: wrap; }
   .logo { display: flex; align-items: center; gap: 10px; }
-  .logo-text { font-family: 'Lora', Georgia, serif; font-size: 20px; font-weight: 700; color: #E8F0DC; letter-spacing: -0.3px; }
   .logo svg { color: #B8D4A0; }
+  .logo-text { font-family: 'Lora', Georgia, serif; font-size: 20px; font-weight: 700; color: #E8F0DC; }
   nav { display: flex; gap: 4px; }
-  .nav-btn { padding: 8px 16px; border-radius: 20px; border: none; cursor: pointer; font-size: 13px; font-weight: 700; font-family: 'DM Sans', sans-serif; letter-spacing: 0.3px; background: transparent; color: #B8D4A0; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+  .nav-btn { padding: 8px 16px; border-radius: 20px; border: none; cursor: pointer; font-size: 13px; font-weight: 700; font-family: 'DM Sans', sans-serif; background: transparent; color: #B8D4A0; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
   .nav-btn.active { background: #B8D4A0; color: #1E2D1E; }
   .header-actions { display: flex; gap: 8px; align-items: center; }
   .edit-btn { padding: 8px 16px; border-radius: 20px; border: 1.5px solid #B8D4A0; background: transparent; color: #B8D4A0; cursor: pointer; font-size: 12px; font-weight: 700; font-family: 'DM Sans', sans-serif; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
   .edit-btn.on { border-color: #F0C44A; background: #F0C44A; color: #1E2D1E; }
   .save-btn { padding: 8px 16px; border-radius: 20px; border: none; background: #78B060; color: #fff; cursor: pointer; font-size: 12px; font-weight: 700; font-family: 'DM Sans', sans-serif; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
-  .save-btn.saved { background: #5A9A5A; }
-
-  /* Main */
+  .save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
   main { padding: 28px 24px; max-width: 960px; margin: 0 auto; }
   h1 { font-family: 'Lora', Georgia, serif; font-size: 26px; color: #1E2D1E; margin-bottom: 6px; }
   .subtitle { font-size: 14px; color: #5A7A5A; margin-bottom: 28px; }
-
-  /* Cards grid */
+  .loading { text-align: center; padding: 60px 0; color: #5A7A5A; font-size: 15px; }
+  .spinner { width: 36px; height: 36px; border: 3px solid #D0DCC5; border-top-color: #78B060; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
   .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 20px; }
   .day-card { background: #FAFAF5; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.06); border: 1px solid #E2EBD8; }
   .card-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: flex-start; }
   .card-day-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
   .card-title { font-family: 'Lora', Georgia, serif; font-size: 17px; color: #fff; font-weight: 700; }
   .card-serves { font-size: 11px; color: rgba(255,255,255,0.65); margin-top: 4px; }
-  .card-edit-btn { background: none; border: 1.5px solid rgba(255,255,255,0.4); border-radius: 8px; color: rgba(255,255,255,0.9); padding: 5px 10px; cursor: pointer; font-size: 11px; font-family: 'DM Sans', sans-serif; display: flex; align-items: center; gap: 4px; font-weight: 700; white-space: nowrap; }
+  .card-edit-btn { background: none; border: 1.5px solid rgba(255,255,255,0.4); border-radius: 8px; color: rgba(255,255,255,0.9); padding: 5px 10px; cursor: pointer; font-size: 11px; font-family: 'DM Sans', sans-serif; display: flex; align-items: center; gap: 4px; font-weight: 700; }
   .card-body { padding: 16px 20px; }
   .recipe-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid #EEF2E8; }
   .recipe-item:last-of-type { border-bottom: none; }
@@ -44,11 +41,9 @@
   .recipe-link { font-size: 12px; color: #78B060; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; margin-top: 4px; }
   .recipe-link:hover { text-decoration: underline; }
   .tags { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 4px; }
-  .tag { padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #2D4A2D; letter-spacing: 0.3px; }
+  .tag { padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #2D4A2D; }
   .note-box { margin-top: 14px; padding: 10px 14px; background: #F0F5E8; border-radius: 10px; font-size: 13px; color: #3D5C3D; border-left: 3px solid #78B060; line-height: 1.5; }
   .empty-slot { padding: 16px; text-align: center; color: #9AB89A; font-size: 13px; font-style: italic; }
-
-  /* Recipes view */
   .recipes-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
   .add-btn { display: flex; align-items: center; gap: 8px; padding: 10px 20px; background: #2D4A2D; color: #B8D4A0; border: none; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 700; font-family: 'DM Sans', sans-serif; }
   .recipes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin-top: 20px; }
@@ -57,8 +52,6 @@
   .recipe-card-name { font-size: 14px; font-weight: 700; color: #1E2D1E; line-height: 1.3; flex: 1; }
   .delete-btn { background: none; border: none; cursor: pointer; color: #C07A7A; padding: 2px; flex-shrink: 0; }
   .no-link { font-size: 12px; color: #9AB89A; }
-
-  /* Modal */
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(20,30,20,0.7); z-index: 1000; align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(4px); }
   .modal-overlay.open { display: flex; }
   .modal { background: #FAFAF5; border-radius: 16px; width: 100%; max-width: 560px; max-height: 90vh; overflow: auto; box-shadow: 0 24px 60px rgba(0,0,0,0.3); }
@@ -68,31 +61,23 @@
   .modal-body { padding: 24px; }
   label { font-size: 12px; font-weight: 700; color: #5A7A5A; letter-spacing: 0.5px; margin-bottom: 6px; display: block; }
   .form-group { margin-bottom: 16px; }
-  input[type=text], input[type=url], textarea { width: 100%; padding: 10px 14px; border: 1.5px solid #D0DCC5; border-radius: 10px; font-size: 14px; font-family: 'DM Sans', sans-serif; background: #F8FAF5; color: #1E2D1E; outline: none; transition: border-color 0.2s; }
+  input[type=text], input[type=url], textarea { width: 100%; padding: 10px 14px; border: 1.5px solid #D0DCC5; border-radius: 10px; font-size: 14px; font-family: 'DM Sans', sans-serif; background: #F8FAF5; color: #1E2D1E; outline: none; }
   input[type=text]:focus, input[type=url]:focus, textarea:focus { border-color: #78B060; }
   textarea { height: 80px; resize: vertical; line-height: 1.5; }
   .modal-save-btn { width: 100%; padding: 12px; background: #2D4A2D; color: #B8D4A0; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 700; font-family: 'DM Sans', sans-serif; margin-top: 8px; }
   .check-list { max-height: 280px; overflow-y: auto; margin-bottom: 16px; }
   .check-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; background: #F2F5EE; border: 1.5px solid #E2EBD8; margin-bottom: 8px; transition: all 0.15s; }
   .check-item.selected { background: #EAF3E0; border-color: #78B060; }
-  .checkbox { width: 18px; height: 18px; border-radius: 5px; border: 2px solid #C0D0B0; background: transparent; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; }
+  .checkbox { width: 18px; height: 18px; border-radius: 5px; border: 2px solid #C0D0B0; background: transparent; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .check-item.selected .checkbox { background: #78B060; border-color: #78B060; }
   .check-item-name { font-size: 13px; font-weight: 600; }
   .hidden { display: none !important; }
-
-  /* Toast */
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #2D4A2D; color: #B8D4A0; padding: 12px 24px; border-radius: 20px; font-size: 14px; font-weight: 700; font-family: 'DM Sans', sans-serif; box-shadow: 0 8px 24px rgba(0,0,0,0.3); z-index: 2000; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #2D4A2D; color: #B8D4A0; padding: 12px 24px; border-radius: 20px; font-size: 14px; font-weight: 700; font-family: 'DM Sans', sans-serif; box-shadow: 0 8px 24px rgba(0,0,0,0.3); z-index: 2000; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
   .toast.show { opacity: 1; }
-
-  @media (max-width: 600px) {
-    header { height: auto; padding: 12px 16px; }
-    .logo-text { font-size: 16px; }
-    main { padding: 20px 16px; }
-  }
+  @media (max-width: 600px) { header { height: auto; padding: 12px 16px; } .logo-text { font-size: 16px; } main { padding: 20px 16px; } }
 </style>
 </head>
 <body>
-
 <header>
   <div class="logo">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
@@ -121,20 +106,15 @@
 </header>
 
 <main>
-  <!-- Cardápio View -->
   <div id="view-cardapio">
     <h1>Cardápio Semanal</h1>
     <p class="subtitle">Jantar para 2 adultos e 2 crianças · cada preparo cobre 2 noites</p>
-    <div class="cards-grid" id="cards-grid"></div>
+    <div id="loading-cardapio" class="loading"><div class="spinner"></div>Carregando cardápio...</div>
+    <div class="cards-grid hidden" id="cards-grid"></div>
   </div>
-
-  <!-- Receitas View -->
   <div id="view-receitas" class="hidden">
     <div class="recipes-header">
-      <div>
-        <h1>Banco de Receitas</h1>
-        <p class="subtitle" id="recipes-count"></p>
-      </div>
+      <div><h1>Banco de Receitas</h1><p class="subtitle" id="recipes-count"></p></div>
       <button class="add-btn hidden" id="add-recipe-btn" onclick="openAddRecipe()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Nova receita
@@ -144,49 +124,31 @@
   </div>
 </main>
 
-<!-- Modal: Add Recipe -->
 <div class="modal-overlay" id="modal-add-recipe">
   <div class="modal">
     <div class="modal-header">
       <span class="modal-title">Adicionar Receita</span>
-      <button class="modal-close" onclick="closeModal('modal-add-recipe')">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
+      <button class="modal-close" onclick="closeModal('modal-add-recipe')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal-body">
-      <div class="form-group">
-        <label>NOME DA RECEITA *</label>
-        <input type="text" id="new-recipe-name" placeholder="Ex: Frango ao limão com alecrim" />
-      </div>
-      <div class="form-group">
-        <label>LINK DA RECEITA</label>
-        <input type="url" id="new-recipe-url" placeholder="https://..." />
-      </div>
-      <div class="form-group">
-        <label>TAGS (separadas por vírgula)</label>
-        <input type="text" id="new-recipe-tags" placeholder="Ex: proteína, rápido, família" />
-      </div>
+      <div class="form-group"><label>NOME DA RECEITA *</label><input type="text" id="new-recipe-name" placeholder="Ex: Frango ao limão com alecrim" /></div>
+      <div class="form-group"><label>LINK DA RECEITA</label><input type="url" id="new-recipe-url" placeholder="https://..." /></div>
+      <div class="form-group"><label>TAGS (separadas por vírgula)</label><input type="text" id="new-recipe-tags" placeholder="Ex: proteína, rápido, família" /></div>
       <button class="modal-save-btn" onclick="addRecipe()">Adicionar receita</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: Edit Menu -->
 <div class="modal-overlay" id="modal-edit-menu">
   <div class="modal">
     <div class="modal-header">
       <span class="modal-title" id="modal-edit-title">Editar cardápio</span>
-      <button class="modal-close" onclick="closeModal('modal-edit-menu')">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
+      <button class="modal-close" onclick="closeModal('modal-edit-menu')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal-body">
       <label style="margin-bottom:12px;">SELECIONE AS RECEITAS</label>
       <div class="check-list" id="check-list"></div>
-      <div class="form-group">
-        <label>OBSERVAÇÕES / DICAS (opcional)</label>
-        <textarea id="menu-notes" placeholder="Ex: Deixe o frango marinando desde cedo..."></textarea>
-      </div>
+      <div class="form-group"><label>OBSERVAÇÕES / DICAS (opcional)</label><textarea id="menu-notes" placeholder="Ex: Deixe o frango marinando desde cedo..."></textarea></div>
       <button class="modal-save-btn" onclick="saveMenuEdit()">Salvar cardápio</button>
     </div>
   </div>
@@ -195,220 +157,143 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ── Data ──────────────────────────────────────────────────────────────────────
-const DEFAULT_RECIPES = [
-  { id:"r1", name:"Frango Grelhado com Legumes", url:"https://www.tudogostoso.com.br/receita/1234-frango-grelhado-com-legumes.html", tags:["proteína","leve"] },
-  { id:"r2", name:"Sopa de Abóbora com Gengibre", url:"https://www.receitasnestle.com.br/receitas/sopa-de-abobora", tags:["sopa","vegano"] },
-  { id:"r3", name:"Macarrão Integral ao Pesto", url:"https://www.receitasnestle.com.br/receitas/macarrao-ao-pesto", tags:["massa","rápido"] },
-  { id:"r4", name:"Risoto de Cogumelos", url:"https://www.tudogostoso.com.br/receita/risoto-cogumelos", tags:["arroz","vegetariano"] },
-  { id:"r5", name:"Peixe ao Forno com Ervas", url:"https://www.receitasnestle.com.br/receitas/peixe-ao-forno", tags:["proteína","leve"] },
-  { id:"r6", name:"Caldo Verde com Frango", url:"https://www.tudogostoso.com.br/receita/caldo-verde", tags:["sopa","reconfortante"] },
-  { id:"r7", name:"Salada de Grão-de-Bico", url:"https://www.tudogostoso.com.br/receita/salada-grao-de-bico", tags:["salada","vegano"] },
-  { id:"r8", name:"Filé de Tilápia com Quinoa", url:"https://www.receitasnestle.com.br/receitas/tilapia-quinoa", tags:["proteína","fitness"] },
-  { id:"r9", name:"Arroz de Forno com Legumes", url:"https://www.tudogostoso.com.br/receita/arroz-forno", tags:["forno","família"] },
-  { id:"r10", name:"Frango Assado de Panela", url:"https://www.tudogostoso.com.br/receita/frango-assado-panela", tags:["proteína","família"] },
-];
-const DEFAULT_MENUS = {
-  seg: { recipeIds:["r1","r2"], notes:"Deixe o frango marinando desde a manhã." },
-  qua: { recipeIds:["r5","r7"], notes:"O peixe vai ao forno por 25 min a 200°C." },
-  sex: { recipeIds:["r10","r9"], notes:"Frango rende para sábado. Arroz de forno serve no domingo." },
-};
+const GIST_ID = '758c5de4aa596fbe88fe27622e396597';
+const GITHUB_TOKEN = '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';
+const GIST_API = `https://api.github.com/gists/${GIST_ID}`;
+
 const DAYS = [
   { key:"seg", cookDay:"2ª feira", label:"Segunda-feira", serves:"Jantar 2ª e 3ª", color:"#4A7C59" },
   { key:"qua", cookDay:"4ª feira", label:"Quarta-feira",  serves:"Jantar 4ª e 5ª", color:"#3D6B8C" },
   { key:"sex", cookDay:"6ª feira", label:"Sexta-feira",   serves:"Fim de semana",   color:"#8C5E3D" },
 ];
-const TAG_COLORS = {
-  "proteína":"#D4EDDA","leve":"#D1ECF1","sopa":"#FFF3CD","vegano":"#D4EDDA",
-  "massa":"#F8D7DA","rápido":"#FFF3CD","arroz":"#E2D9F3","vegetariano":"#D4EDDA",
-  "forno":"#F8D7DA","família":"#FFE8CC","salada":"#D4EDDA","fitness":"#D1ECF1","reconfortante":"#FFF3CD"
-};
+const TAG_COLORS = {"proteína":"#D4EDDA","leve":"#D1ECF1","sopa":"#FFF3CD","vegano":"#D4EDDA","massa":"#F8D7DA","rápido":"#FFF3CD","arroz":"#E2D9F3","vegetariano":"#D4EDDA","forno":"#F8D7DA","família":"#FFE8CC","salada":"#D4EDDA","fitness":"#D1ECF1","reconfortante":"#FFF3CD"};
 
-let recipes = JSON.parse(localStorage.getItem('cardapio_recipes') || 'null') || DEFAULT_RECIPES;
-let menus   = JSON.parse(localStorage.getItem('cardapio_menus')   || 'null') || DEFAULT_MENUS;
-let editMode = false;
-let currentEditDay = null;
+let recipes = [], menus = {}, editMode = false, currentEditDay = null;
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+async function loadFromGist() {
+  try {
+    const res = await fetch(`https://gist.githubusercontent.com/biaxmachado-jpg/${GIST_ID}/raw/cardapio.json?t=${Date.now()}`);
+    const data = await res.json();
+    recipes = data.recipes || [];
+    menus = data.menus || {};
+    return true;
+  } catch(e) { return false; }
+}
+
+async function saveToGist() {
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+  try {
+    const res = await fetch(GIST_API, {
+      method: 'PATCH',
+      headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ files: { 'cardapio.json': { content: JSON.stringify({ recipes, menus }, null, 2) } } })
+    });
+    showToast(res.ok ? '✅ Salvo na nuvem!' : '❌ Erro ao salvar.');
+  } catch(e) { showToast('❌ Sem conexão.'); }
+  btn.disabled = false;
+  btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Salvar`;
+}
+
 function recipeById(id) { return recipes.find(r => r.id === id); }
-function tagBadge(t) {
-  return `<span class="tag" style="background:${TAG_COLORS[t]||'#E8EDE0'}">${t}</span>`;
-}
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
+function tagBadge(t) { return `<span class="tag" style="background:${TAG_COLORS[t]||'#E8EDE0'}">${t}</span>`; }
+function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
 
-// ── Render ────────────────────────────────────────────────────────────────────
 function renderCardapio() {
+  document.getElementById('loading-cardapio').classList.add('hidden');
   const grid = document.getElementById('cards-grid');
-  grid.innerHTML = DAYS.map(({ key, cookDay, label, serves, color }) => {
-    const menu = menus[key] || { recipeIds:[], notes:"" };
-    const editBtn = editMode
-      ? `<button class="card-edit-btn" onclick="openMenuEdit('${key}')">
-           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-           editar
-         </button>` : '';
-    const items = menu.recipeIds.length === 0
-      ? `<div class="empty-slot">Nenhuma receita adicionada</div>`
-      : menu.recipeIds.map((rid, i) => {
-          const r = recipeById(rid); if (!r) return '';
-          const border = i < menu.recipeIds.length - 1 ? '' : 'border-bottom:none';
-          return `<div class="recipe-item" style="${border}">
+  grid.classList.remove('hidden');
+  grid.innerHTML = DAYS.map(({key,cookDay,label,serves,color}) => {
+    const menu = menus[key]||{recipeIds:[],notes:""};
+    const editBtn = editMode ? `<button class="card-edit-btn" onclick="openMenuEdit('${key}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> editar</button>` : '';
+    const items = menu.recipeIds.length === 0 ? `<div class="empty-slot">Nenhuma receita adicionada</div>`
+      : menu.recipeIds.map((rid,i) => {
+          const r=recipeById(rid); if(!r) return '';
+          return `<div class="recipe-item" style="${i===menu.recipeIds.length-1?'border-bottom:none':''}">
             <div class="recipe-dot" style="background:${color}"></div>
-            <div>
-              <div class="recipe-name">${r.name}</div>
-              <div class="tags">${r.tags.map(tagBadge).join('')}</div>
-              ${r.url ? `<a href="${r.url}" target="_blank" rel="noopener" class="recipe-link">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                ver receita</a>` : ''}
-            </div>
-          </div>`;
+            <div><div class="recipe-name">${r.name}</div><div class="tags">${r.tags.map(tagBadge).join('')}</div>
+            ${r.url?`<a href="${r.url}" target="_blank" class="recipe-link"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> ver receita</a>`:''}</div></div>`;
         }).join('');
-    const noteBox = menu.notes ? `<div class="note-box">💡 ${menu.notes}</div>` : '';
-    return `<div class="day-card">
-      <div class="card-header" style="background:${color}">
-        <div>
-          <div class="card-day-label">Cozinhar na ${cookDay}</div>
-          <div class="card-title">${label}</div>
-          <div class="card-serves">🍽 ${serves}</div>
-        </div>
-        ${editBtn}
-      </div>
-      <div class="card-body">${items}${noteBox}</div>
-    </div>`;
+    return `<div class="day-card"><div class="card-header" style="background:${color}"><div><div class="card-day-label">Cozinhar na ${cookDay}</div><div class="card-title">${label}</div><div class="card-serves">🍽 ${serves}</div></div>${editBtn}</div><div class="card-body">${items}${menu.notes?`<div class="note-box">💡 ${menu.notes}</div>`:''}</div></div>`;
   }).join('');
 }
 
 function renderReceitas() {
   document.getElementById('recipes-count').textContent = `${recipes.length} receitas cadastradas`;
   document.getElementById('add-recipe-btn').classList.toggle('hidden', !editMode);
-  const grid = document.getElementById('recipes-grid');
-  grid.innerHTML = recipes.map(r => {
-    const delBtn = editMode
-      ? `<button class="delete-btn" onclick="deleteRecipe('${r.id}')">
-           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-         </button>` : '';
-    return `<div class="recipe-card">
-      <div class="recipe-card-header">
-        <div class="recipe-card-name">${r.name}</div>
-        ${delBtn}
-      </div>
-      <div class="tags">${r.tags.map(tagBadge).join('')}</div>
-      ${r.url
-        ? `<a href="${r.url}" target="_blank" rel="noopener" class="recipe-link">
-             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-             Abrir receita</a>`
-        : `<span class="no-link">Sem link</span>`}
-    </div>`;
+  document.getElementById('recipes-grid').innerHTML = recipes.map(r => {
+    const delBtn = editMode ? `<button class="delete-btn" onclick="deleteRecipe('${r.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>` : '';
+    return `<div class="recipe-card"><div class="recipe-card-header"><div class="recipe-card-name">${r.name}</div>${delBtn}</div><div class="tags">${r.tags.map(tagBadge).join('')}</div>${r.url?`<a href="${r.url}" target="_blank" class="recipe-link"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Abrir receita</a>`:`<span class="no-link">Sem link</span>`}</div>`;
   }).join('');
 }
 
 function renderAll() { renderCardapio(); renderReceitas(); }
 
-// ── View switching ────────────────────────────────────────────────────────────
-let currentView = 'cardapio';
 function switchView(v) {
-  currentView = v;
-  document.getElementById('view-cardapio').classList.toggle('hidden', v !== 'cardapio');
-  document.getElementById('view-receitas').classList.toggle('hidden', v !== 'receitas');
-  document.getElementById('btn-cardapio').classList.toggle('active', v === 'cardapio');
-  document.getElementById('btn-receitas').classList.toggle('active', v === 'receitas');
+  document.getElementById('view-cardapio').classList.toggle('hidden', v!=='cardapio');
+  document.getElementById('view-receitas').classList.toggle('hidden', v!=='receitas');
+  document.getElementById('btn-cardapio').classList.toggle('active', v==='cardapio');
+  document.getElementById('btn-receitas').classList.toggle('active', v==='receitas');
 }
 
-// ── Edit mode ─────────────────────────────────────────────────────────────────
 function toggleEdit() {
   editMode = !editMode;
-  const btn = document.getElementById('edit-btn');
-  btn.classList.toggle('on', editMode);
+  document.getElementById('edit-btn').classList.toggle('on', editMode);
   document.getElementById('edit-label').textContent = editMode ? 'Editando' : 'Editar';
   renderAll();
 }
 
-// ── Save ──────────────────────────────────────────────────────────────────────
-function saveData() {
-  localStorage.setItem('cardapio_recipes', JSON.stringify(recipes));
-  localStorage.setItem('cardapio_menus', JSON.stringify(menus));
-  showToast('✅ Cardápio salvo!');
-}
-
-// ── Modals ────────────────────────────────────────────────────────────────────
+async function saveData() { await saveToGist(); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 function openAddRecipe() {
-  document.getElementById('new-recipe-name').value = '';
-  document.getElementById('new-recipe-url').value = '';
-  document.getElementById('new-recipe-tags').value = '';
+  ['new-recipe-name','new-recipe-url','new-recipe-tags'].forEach(id => document.getElementById(id).value='');
   document.getElementById('modal-add-recipe').classList.add('open');
 }
 
 function addRecipe() {
   const name = document.getElementById('new-recipe-name').value.trim();
   if (!name) return;
-  const url  = document.getElementById('new-recipe-url').value.trim();
-  const tags = document.getElementById('new-recipe-tags').value.split(',').map(t => t.trim()).filter(Boolean);
-  recipes.push({ id: 'r' + Date.now(), name, url, tags });
-  closeModal('modal-add-recipe');
-  renderAll();
+  recipes.push({ id:'r'+Date.now(), name, url: document.getElementById('new-recipe-url').value.trim(), tags: document.getElementById('new-recipe-tags').value.split(',').map(t=>t.trim()).filter(Boolean) });
+  closeModal('modal-add-recipe'); renderAll();
 }
 
 function deleteRecipe(id) {
   if (!confirm('Remover esta receita?')) return;
-  recipes = recipes.filter(r => r.id !== id);
-  Object.keys(menus).forEach(k => {
-    menus[k].recipeIds = menus[k].recipeIds.filter(rid => rid !== id);
-  });
+  recipes = recipes.filter(r=>r.id!==id);
+  Object.keys(menus).forEach(k => { menus[k].recipeIds = menus[k].recipeIds.filter(rid=>rid!==id); });
   renderAll();
 }
 
 function openMenuEdit(dayKey) {
   currentEditDay = dayKey;
-  const day = DAYS.find(d => d.key === dayKey);
-  document.getElementById('modal-edit-title').textContent = `Editar cardápio — ${day.label}`;
-  document.getElementById('menu-notes').value = menus[dayKey]?.notes || '';
-  const list = document.getElementById('check-list');
-  list.innerHTML = recipes.map(r => {
-    const sel = (menus[dayKey]?.recipeIds || []).includes(r.id);
-    return `<div class="check-item ${sel ? 'selected' : ''}" onclick="toggleRecipeCheck(this, '${r.id}')">
-      <div class="checkbox">
-        ${sel ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
-      </div>
-      <div>
-        <div class="check-item-name">${r.name}</div>
-        <div class="tags">${r.tags.map(tagBadge).join('')}</div>
-      </div>
-    </div>`;
+  document.getElementById('modal-edit-title').textContent = `Editar — ${DAYS.find(d=>d.key===dayKey).label}`;
+  document.getElementById('menu-notes').value = menus[dayKey]?.notes||'';
+  document.getElementById('check-list').innerHTML = recipes.map(r => {
+    const sel = (menus[dayKey]?.recipeIds||[]).includes(r.id);
+    return `<div class="check-item ${sel?'selected':''}" onclick="toggleRecipeCheck(this,'${r.id}')"><div class="checkbox">${sel?`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`:''}</div><div><div class="check-item-name">${r.name}</div><div class="tags">${r.tags.map(tagBadge).join('')}</div></div></div>`;
   }).join('');
   document.getElementById('modal-edit-menu').classList.add('open');
 }
 
 function toggleRecipeCheck(el, recipeId) {
   el.classList.toggle('selected');
-  const sel = el.classList.contains('selected');
-  el.querySelector('.checkbox').innerHTML = sel
-    ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`
-    : '';
+  el.querySelector('.checkbox').innerHTML = el.classList.contains('selected') ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>` : '';
 }
 
 function saveMenuEdit() {
-  const selected = [...document.querySelectorAll('#check-list .check-item.selected')]
-    .map(el => el.getAttribute('onclick').match(/'([^']+)'/g)[1].replace(/'/g,''));
-  menus[currentEditDay] = {
-    recipeIds: selected,
-    notes: document.getElementById('menu-notes').value.trim()
-  };
-  closeModal('modal-edit-menu');
-  renderAll();
+  const selected = [...document.querySelectorAll('#check-list .check-item.selected')].map(el=>el.getAttribute('onclick').match(/'([^']+)'/g)[1].replace(/'/g,''));
+  menus[currentEditDay] = { recipeIds: selected, notes: document.getElementById('menu-notes').value.trim() };
+  closeModal('modal-edit-menu'); renderAll();
 }
 
-// Close modals on overlay click
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
-});
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }));
 
-// ── Init ──────────────────────────────────────────────────────────────────────
-renderAll();
+(async () => {
+  const ok = await loadFromGist();
+  if (ok) renderAll();
+  else document.getElementById('loading-cardapio').innerHTML = '❌ Erro ao carregar. Verifique a conexão.';
+})();
 </script>
 </body>
 </html>
