@@ -255,16 +255,12 @@ textarea{height:70px;resize:vertical;line-height:1.5}
 
 <div class="toast" id="toast"></div>
 
-<!-- Firebase SDK v10 (modular via CDN compat) -->
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, doc, getDoc, setDoc, collection, addDoc, getDocs, deleteDoc, query, orderBy, limit, onSnapshot }
-  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+<!-- Firebase SDK compat -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
 
-// =============================================
 // 🔥 CONFIGURAÇÃO FIREBASE
-// Substitua pelos valores do seu projeto Firebase
-// =============================================
 const firebaseConfig = {
   apiKey: "AIzaSyDNGrGUO_22PskhgjdzDuuAmn-y3VFTVeg",
   authDomain: "cardapiocasa-eb828.firebaseapp.com",
@@ -273,10 +269,9 @@ const firebaseConfig = {
   messagingSenderId: "1024064868417",
   appId: "1:1024064868417:web:a7102051b657269d76b6c0"
 };
-// =============================================
 
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
 // ─── constantes ───────────────────────────────────────────
 const WH_LISTA   = 'https://n8n.bian8n.cloud/webhook/enviar-lista-compras';
@@ -334,8 +329,8 @@ async function loadFromFirebase(){
     setFbStatus('connecting');
 
     // cardápio principal
-    const mainDoc = await getDoc(doc(db,'cardapio','main'));
-    if(mainDoc.exists()){
+    const mainDoc = await db.collection('cardapio').doc('main').get();
+    if(mainDoc.exists){
       const d=mainDoc.data();
       recipes  = d.recipes  || [];
       menus    = d.menus    || {};
@@ -349,7 +344,7 @@ async function loadFromFirebase(){
     }
 
     // histórico
-    const histSnap = await getDocs(query(collection(db,'historico'),orderBy('date','desc'),limit(10)));
+    const histSnap = await db.collection('historico').orderBy('date','desc').limit(10).get();
     historicoList = histSnap.docs.map(d=>({id:d.id,...d.data()}));
 
     setFbStatus('online');
@@ -366,7 +361,7 @@ async function saveToFirebase(){
   const btn=document.getElementById('btn-save');
   btn.disabled=true;btn.textContent='Salvando...';
   try {
-    await setDoc(doc(db,'cardapio','main'),{recipes,menus,shopping,tags});
+    await db.collection('cardapio').doc('main').set({recipes,menus,shopping,tags});
     showToast('✅ Salvo com sucesso!');
     setFbStatus('online');
   } catch(e){
@@ -380,7 +375,7 @@ async function saveToFirebase(){
 async function saveToHistory(lista,tab){
   const entry={tab,date:new Date().toISOString(),lista};
   try {
-    const docRef = await addDoc(collection(db,'historico'),entry);
+    const docRef = await db.collection('historico').add(entry);
     historicoList.unshift({id:docRef.id,...entry});
     if(historicoList.length>10) historicoList=historicoList.slice(0,10);
   } catch(e){
@@ -642,7 +637,7 @@ async function deleteHist(idx){
   if(!confirm('Remover esta lista do histórico?'))return;
   const entry=historicoList[idx];
   if(entry&&entry.id){
-    try{await deleteDoc(doc(db,'historico',entry.id));}catch(e){}
+    try{await db.collection('historico').doc(entry.id).delete();}catch(e){}
   }
   historicoList.splice(idx,1);
   renderHistorico();
@@ -681,16 +676,7 @@ function renderAll(){renderWeekBar();renderCardapio();renderReceitas();renderSho
 // ─── fechar modal ao clicar fora ──────────────────────────
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 
-// ─── expor funções para o HTML inline ─────────────────────
-Object.assign(window,{
-  changeWeek,goToThisWeek,switchView,saveData,openPin,checkPin,
-  renderCardapio,viewRecipe,renderTagManager,addTag,deleteTag,filterByTag,
-  openAddRecipe,editRecipe,switchSrc,saveRecipe,deleteRecipe,
-  setMenuFilter,openMenuEdit,saveMenu,
-  switchShopTab,toggleCat,toggleCheck,setBuyQty,updateQtyRef,
-  checkAll,uncheckAll,resetAll,delItem,addItem,addCategory,generateAndSend,
-  toggleHist,copyList,resendList,deleteHist
-});
+// funções já são globais no modo compat
 
 // ─── inicialização ────────────────────────────────────────
 (async()=>{
