@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Cardapio da Casa</title>
+<!-- deploy 20260429-004906 -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F373;</text></svg>"/>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet"/>
 <style>
@@ -677,6 +678,25 @@ function renderAll(){renderWeekBar();renderCardapio();renderReceitas();renderSho
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 
 // funções já são globais no modo compat
+
+// ─── expor funções globalmente ───────────────────────────────
+window.changeWeek=changeWeek; window.goToThisWeek=goToThisWeek;
+window.switchView=switchView; window.saveData=saveData;
+window.openPin=openPin; window.checkPin=checkPin;
+window.viewRecipe=viewRecipe; window.addTag=addTag;
+window.deleteTag=deleteTag; window.filterByTag=filterByTag;
+window.openAddRecipe=openAddRecipe; window.editRecipe=editRecipe;
+window.switchSrc=switchSrc; window.saveRecipe=saveRecipe;
+window.deleteRecipe=deleteRecipe; window.setMenuFilter=setMenuFilter;
+window.openMenuEdit=openMenuEdit; window.saveMenu=saveMenu;
+window.switchShopTab=switchShopTab; window.toggleCat=toggleCat;
+window.toggleCheck=toggleCheck; window.setBuyQty=setBuyQty;
+window.updateQtyRef=updateQtyRef; window.checkAll=checkAll;
+window.uncheckAll=uncheckAll; window.resetAll=resetAll;
+window.delItem=delItem; window.addItem=addItem;
+window.addCategory=addCategory; window.generateAndSend=generateAndSend;
+window.toggleHist=toggleHist; window.copyList=copyList;
+window.resendList=resendList; window.deleteHist=deleteHist;
 
 // ─── inicialização ────────────────────────────────────────
 (async()=>{
