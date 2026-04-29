@@ -338,10 +338,29 @@ async function loadFromFirebase(){
       shopping = (d.shopping && Object.keys(d.shopping).length) ? d.shopping : JSON.parse(JSON.stringify(DS));
       tags     = (d.tags && d.tags.length) ? d.tags : JSON.parse(JSON.stringify(DEFAULT_TAGS));
     } else {
-      // primeira vez: inicializa com defaults
-      recipes=[];menus={};
-      shopping=JSON.parse(JSON.stringify(DS));
-      tags=JSON.parse(JSON.stringify(DEFAULT_TAGS));
+      // Firestore vazio: tenta migrar dados do Gist antigo
+      console.log('Firestore vazio, tentando migrar do Gist...');
+      try {
+        const gistRes = await fetch('https://gist.githubusercontent.com/biaxmachado-jpg/758c5de4aa596fbe88fe27622e396597/raw/cardapio.json?t='+Date.now());
+        if(gistRes.ok){
+          const gistData = await gistRes.json();
+          recipes  = gistData.recipes  || [];
+          menus    = gistData.menus    || {};
+          shopping = (gistData.shopping && Object.keys(gistData.shopping).length) ? gistData.shopping : JSON.parse(JSON.stringify(DS));
+          tags     = (gistData.tags && gistData.tags.length) ? gistData.tags : JSON.parse(JSON.stringify(DEFAULT_TAGS));
+          // Salva automaticamente no Firestore
+          await db.collection('cardapio').doc('main').set({recipes,menus,shopping,tags});
+          showToast('✅ Dados migrados do backup para o Firebase!');
+          console.log('Migração concluída! Receitas:', recipes.length);
+        } else {
+          throw new Error('Gist não acessível');
+        }
+      } catch(migErr) {
+        console.log('Migração falhou, usando defaults:', migErr);
+        recipes=[];menus={};
+        shopping=JSON.parse(JSON.stringify(DS));
+        tags=JSON.parse(JSON.stringify(DEFAULT_TAGS));
+      }
     }
 
     // histórico
