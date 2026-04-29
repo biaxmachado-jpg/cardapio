@@ -166,150 +166,541 @@ textarea{height:70px;resize:vertical;line-height:1.5}
 .help-txt{font-size:11px;color:#7A9A7A;margin-top:4px;font-style:italic}
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#2D4A2D;color:#B8D4A0;padding:10px 22px;border-radius:20px;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.3);z-index:2000;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1}
+/* Firebase status badge */
+.fb-status{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;font-family:'DM Sans',sans-serif;transition:all .3s}
+.fb-status.connecting{background:rgba(240,196,74,.2);color:#F0C44A}
+.fb-status.online{background:rgba(37,162,68,.2);color:#25A244}
+.fb-status.offline{background:rgba(192,122,122,.2);color:#C07A7A}
+.fb-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
 @media(max-width:600px){header{padding:8px 12px}.logo-text{font-size:14px}main{padding:14px 12px}.nav-btn{font-size:10px;padding:5px 8px}.shop-item{grid-template-columns:26px 1fr}.item-right{grid-column:2;justify-content:flex-start}.week-txt{min-width:150px;font-size:13px}}
 @media print{header,.shop-controls,.shop-tabs,.sctrl,.btn-print,.btn-admin,.nav-btn,.week-bar,.hist-actions{display:none!important}.gen-list{border:none;padding:0}}
 </style>
 </head>
 <body>
 <header>
-  <div class="logo"><span style="font-size:22px">&#x1F373;</span><span class="logo-text">Card&#225;pio da Casa</span></div>
+  <div class="logo"><span style="font-size:22px">🍳</span><span class="logo-text">Cardápio da Casa</span></div>
   <nav>
-    <button class="nav-btn active" id="btn-cardapio" onclick="switchView('cardapio')">&#128197; Card&#225;pio</button>
-    <button class="nav-btn" id="btn-receitas" onclick="switchView('receitas')">&#128214; Receitas</button>
-    <button class="nav-btn" id="btn-compras" onclick="switchView('compras')">&#128722; Compras</button>
-    <button class="nav-btn" id="btn-historico" onclick="switchView('historico')">&#128203; Hist&#243;rico</button>
+    <button class="nav-btn active" id="btn-cardapio" onclick="switchView('cardapio')">📅 Cardápio</button>
+    <button class="nav-btn" id="btn-receitas" onclick="switchView('receitas')">📖 Receitas</button>
+    <button class="nav-btn" id="btn-compras" onclick="switchView('compras')">🛒 Compras</button>
+    <button class="nav-btn" id="btn-historico" onclick="switchView('historico')">📋 Histórico</button>
   </nav>
   <div class="header-right">
-    <div class="admin-pill hidden" id="admin-pill">&#128081; Admin</div>
-    <button class="btn-admin" id="btn-admin" onclick="openPin()">&#128272; Admin</button>
-    <button class="btn-save hidden" id="btn-save" onclick="saveData()">&#128190; Salvar</button>
+    <span class="fb-status connecting" id="fb-status"><span class="fb-dot"></span><span id="fb-status-txt">Conectando...</span></span>
+    <div class="admin-pill hidden" id="admin-pill">👑 Admin</div>
+    <button class="btn-admin" id="btn-admin" onclick="openPin()">🔐 Admin</button>
+    <button class="btn-save hidden" id="btn-save" onclick="saveData()">💾 Salvar</button>
   </div>
 </header>
-<main>
-<div id="view-cardapio">
-  <h1>Card&#225;pio Semanal</h1>
-  <p class="subtitle">Jantar para a fam&#237;lia &#183; cada preparo cobre 2 noites</p>
-  <div class="week-bar">
-    <span class="week-lbl">&#128197; Semana de:</span>
-    <div class="week-nav">
-      <button class="warrow" onclick="changeWeek(-1)">&#8249;</button>
-      <div class="week-txt" id="week-txt">carregando...</div>
-      <button class="warrow" onclick="changeWeek(1)">&#8250;</button>
-    </div>
-    <button class="week-now" onclick="goToThisWeek()">Semana atual</button>
-  </div>
-  <div id="loading-c" class="loading"><div class="spinner"></div>Carregando...</div>
-  <div class="cards-grid hidden" id="cards-grid"></div>
-</div>
-<div id="view-receitas" class="hidden">
-  <div class="page-hd">
-    <div><h1>Banco de Receitas</h1><p class="subtitle" id="r-count"></p></div>
-    <button class="btn-add hidden" id="btn-add-recipe" onclick="openAddRecipe()">+ Nova receita</button>
-  </div>
-  <div id="tag-mgr-area"></div>
-  <div class="filter-bar" id="filter-bar"></div>
-  <div class="recipes-grid" id="recipes-grid"></div>
-</div>
-<div id="view-compras" class="hidden">
-  <h1>Lista de Compras</h1>
-  <p class="subtitle">Marque o que precisa, preencha <strong>o quanto comprar</strong> e clique em <strong>Gerar e Enviar</strong></p>
-  <div class="shop-tabs">
-    <button class="shop-tab active" id="tab-semanal" onclick="switchShopTab('semanal')">&#128722; Semanal</button>
-    <button class="shop-tab" id="tab-mensal" onclick="switchShopTab('mensal')">&#128230; Mensal</button>
-  </div>
-  <div class="shop-controls">
-    <button class="sctrl" onclick="checkAll()">&#10003; Marcar tudo</button>
-    <button class="sctrl" onclick="uncheckAll()">&#10005; Desmarcar</button>
-    <button class="sctrl orange" onclick="resetAll()">&#8635; Resetar tudo</button>
-    <button class="sctrl send" onclick="generateAndSend()">&#128242; Gerar e Enviar para Bia</button>
-  </div>
-  <div id="shop-container"></div>
-  <div id="gen-container"></div>
-</div>
-<div id="view-historico" class="hidden">
-  <h1>Hist&#243;rico de Listas</h1>
-  <p class="subtitle">&#218;ltimas 10 listas geradas &#183; backup caso o WhatsApp falhe</p>
-  <div id="hist-container"><p style="color:#9AB89A;font-style:italic;text-align:center;padding:40px">Nenhuma lista gerada ainda.</p></div>
-</div>
-</main>
-<div class="modal-overlay" id="m-pin"><div class="modal"><div class="modal-hd"><span class="modal-title">&#128272; Acesso Admin</span><button class="modal-close" onclick="closeModal('m-pin')">&#215;</button></div><div class="modal-bd"><div class="fgroup"><label>PIN de 4 d&#237;gitos</label><input type="password" id="pin-inp" class="pin-input" maxlength="4" placeholder="&#8226;&#8226;&#8226;&#8226;" oninput="this.value=this.value.replace(/\D/g,'')" onkeydown="if(event.key==='Enter')checkPin()"/><div class="pin-err hidden" id="pin-err">PIN incorreto. Tente novamente.</div></div><button class="modal-save-btn" onclick="checkPin()">Entrar como Admin</button></div></div></div>
-<div class="modal-overlay" id="m-recipe"><div class="modal"><div class="modal-hd"><span class="modal-title" id="m-recipe-title">Nova Receita</span><button class="modal-close" onclick="closeModal('m-recipe')">&#215;</button></div><div class="modal-bd"><input type="hidden" id="edit-recipe-id"/><div class="fgroup"><label>Nome da receita *</label><input type="text" id="r-name" placeholder="Ex: Frango ao lim&#227;o"/></div><div class="fgroup"><label>Fonte da receita</label><div class="source-tabs"><button class="src-tab active" id="src-link" onclick="switchSrc('link')">&#128279; Link externo</button><button class="src-tab" id="src-text" onclick="switchSrc('text')">&#128221; Digitar receita</button></div><div id="src-link-area"><input type="url" id="r-url" placeholder="https://..."/><p class="help-txt">Cole o link de qualquer site de receitas</p></div><div id="src-text-area" class="hidden"><textarea class="recipe-textarea" id="r-text" placeholder="Cole ou digite o texto completo da receita..."></textarea><p class="help-txt">O texto fica dispon&#237;vel para a cozinheira ler no site</p></div></div><div class="fgroup"><label>Marcadores</label><div class="tag-sel-row" id="tag-selector"></div></div><button class="modal-save-btn" onclick="saveRecipe()">Salvar receita</button></div></div></div>
-<div class="modal-overlay" id="m-menu"><div class="modal"><div class="modal-hd"><span class="modal-title" id="m-menu-title">Montar card&#225;pio</span><button class="modal-close" onclick="closeModal('m-menu')">&#215;</button></div><div class="modal-bd"><label style="margin-bottom:10px">Selecione as receitas do dia</label><div class="modal-filter-bar" id="modal-filter-bar"></div><div class="check-list" id="recipe-checklist"></div><div class="fgroup"><label>Observa&#231;&#227;o para a cozinheira</label><textarea id="menu-note" placeholder="Ex: Deixar o frango marinando desde cedo..."></textarea></div><button class="modal-save-btn" onclick="saveMenu()">Salvar card&#225;pio</button></div></div></div>
-<div class="modal-overlay" id="m-recipe-view"><div class="modal"><div class="modal-hd"><span class="modal-title" id="m-rv-title">Receita</span><button class="modal-close" onclick="closeModal('m-recipe-view')">&#215;</button></div><div class="modal-bd" id="m-rv-body"></div></div></div>
-<div class="toast" id="toast"></div>
-<script>
-const GIST_ID='758c5de4aa596fbe88fe27622e396597';
-const GH_TOKEN='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';
-const GIST_API='https://api.github.com/gists/'+GIST_ID;
-const WH_LISTA='https://n8n.bian8n.cloud/webhook/enviar-lista-compras';
-const ADMIN_PIN='2580';
-const DAYS=[{key:'seg',label:'Segunda-feira',serves:'Jantar 2\u00aa e 3\u00aa',color:'#4A7C59',offset:0},{key:'qua',label:'Quarta-feira',serves:'Jantar 4\u00aa e 5\u00aa',color:'#3D6B8C',offset:2},{key:'sex',label:'Sexta-feira',serves:'Fim de semana',color:'#8C5E3D',offset:4}];
-const DEFAULT_TAGS=[{id:'t1',name:'Prote\u00edna',color:'#4A7C59'},{id:'t2',name:'Salada',color:'#2D7A4A'},{id:'t3',name:'Saud\u00e1vel',color:'#3D8C5A'},{id:'t4',name:'Acompanhamento',color:'#7C5E3D'},{id:'t5',name:'Fam\u00edlia',color:'#3D6B8C'},{id:'t6',name:'R\u00e1pido',color:'#8C7A2D'},{id:'t7',name:'Vegano',color:'#2D6B3D'},{id:'t8',name:'Fitness',color:'#2D5C8C'},{id:'t9',name:'Especial',color:'#7A3D8C'},{id:'t10',name:'Peixe',color:'#2D7A8C'},{id:'t11',name:'Frango',color:'#8C6A2D'},{id:'t12',name:'Prato \u00fanico',color:'#6B3D8C'}];
-const DS={"semanal": {"label": "Semanal", "categories": [{"name": "Temperos", "items": [{"name": "Alho", "qty": "3 unidades"}, {"name": "Cebola", "qty": "3 unidades"}, {"name": "Limao", "qty": "3 unidades"}]}, {"name": "Frutas", "items": [{"name": "Banana", "qty": "8 unidades"}, {"name": "Mamao", "qty": "1 unidade grande"}, {"name": "Maca", "qty": "2 unidades"}, {"name": "Melao", "qty": "1 unidade"}, {"name": "Uva", "qty": "1 cacho"}]}, {"name": "Legumes e Verduras", "items": [{"name": "Berinjela", "qty": "3 unidades"}, {"name": "Abobrinha", "qty": "1 unidade"}, {"name": "Alface", "qty": "1 unidade"}, {"name": "Rucula", "qty": "1 unidade"}, {"name": "Tomate", "qty": "3 unidades"}, {"name": "Tomate cereja", "qty": "3 unidades"}, {"name": "Couve flor", "qty": "1 ramo"}, {"name": "Brocolis", "qty": "1 ramo"}, {"name": "Cenoura", "qty": "2 unidades"}, {"name": "Abobora", "qty": "1 unidade"}, {"name": "Beterraba", "qty": "1 unidade"}, {"name": "Chuchu", "qty": "1 unidade"}, {"name": "Espinafre", "qty": "1 ramo"}, {"name": "Agriao", "qty": "1 ramo"}, {"name": "Couve", "qty": "1 ramo"}, {"name": "Batata inglesa", "qty": "8 un / 700g"}, {"name": "Batata Doce", "qty": "4 un / 350g"}, {"name": "Aipim", "qty": "4 un / 350g"}]}, {"name": "Ovos", "items": [{"name": "Ovo", "qty": "12 unidades"}, {"name": "Ovo de codorna", "qty": "1 caixa"}]}, {"name": "Paes", "items": [{"name": "Pao de forma", "qty": "1 saco"}, {"name": "Bisnaguinha", "qty": "1 saco"}]}, {"name": "Laticinios", "items": [{"name": "Creme de ricota", "qty": "1 unidade"}, {"name": "Queijo cottage", "qty": "1 unidade"}, {"name": "Queijo minas", "qty": "400g"}, {"name": "Iogurte Yorgus", "qty": "3 unidades"}, {"name": "Iogurte", "qty": "3 unidades"}, {"name": "Mussarela", "qty": "250g"}]}, {"name": "Proteinas", "items": [{"name": "Patinho para kibe", "qty": "500g"}, {"name": "File de tilapia", "qty": "1kg"}, {"name": "File de atum", "qty": "1kg"}, {"name": "File de salmao", "qty": "1kg"}, {"name": "Bacalhau", "qty": "1kg"}, {"name": "Carne moida", "qty": "250g"}, {"name": "Figado", "qty": "250g"}]}, {"name": "Castanhas", "items": [{"name": "Castanha de caju", "qty": "200g"}, {"name": "Gojiberry", "qty": "200g"}, {"name": "Cramberry", "qty": "200g"}, {"name": "Blueberry", "qty": "200g"}]}]}, "mensal": {"label": "Mensal", "categories": [{"name": "Graos e Massas", "items": [{"name": "Arroz integral", "qty": "3kg"}, {"name": "Arroz arboreo", "qty": "1 embalagem"}, {"name": "Arroz 7 cereais", "qty": "1 embalagem"}, {"name": "Macarrao spaguetti", "qty": "500g"}, {"name": "Massa para lasanha", "qty": "500g"}, {"name": "Feijao", "qty": "2kg"}, {"name": "Grao de bico", "qty": "2 sacos"}, {"name": "Lentilha", "qty": "1 saco"}, {"name": "Aveia", "qty": "2 sacos 1kg"}, {"name": "Quinoa", "qty": "1 pacote"}, {"name": "Couscous marroquino", "qty": "1 pacote"}, {"name": "Chia", "qty": "1 pacote"}, {"name": "Tapioca", "qty": "3 pacotes"}, {"name": "Farinha de trigo", "qty": "2kg"}]}, {"name": "Enlatados", "items": [{"name": "Milho", "qty": "8 latas"}, {"name": "Tomate pelado", "qty": "3 latas"}, {"name": "Molho de tomate", "qty": "3 garrafas"}, {"name": "Palmito", "qty": "4 latas"}, {"name": "Atum", "qty": "5 latas"}, {"name": "Creme de leite", "qty": "8 latas"}]}, {"name": "Laticinios", "items": [{"name": "Leite de castanha", "qty": "15 caixas"}, {"name": "Leite em po", "qty": "1 lata"}, {"name": "Leite desnatado", "qty": "3 caixas"}, {"name": "Requeijao", "qty": "5 unidades"}, {"name": "Manteiga com sal", "qty": "2 unidades"}, {"name": "Manteiga sem sal", "qty": "2 unidades"}, {"name": "Queijo ralado", "qty": "4 un 100g"}, {"name": "Iogurte Ninho", "qty": "1 bandeja"}, {"name": "Iogurte Danoninho", "qty": "1 bandeja"}]}, {"name": "Proteinas", "items": [{"name": "Peito de frango", "qty": "10 unidades"}, {"name": "Sobrecoxa de frango", "qty": "5 unidades"}, {"name": "Carne moida", "qty": "250g"}, {"name": "Nuggets", "qty": "1 pacote"}, {"name": "File de tilapia", "qty": "1kg"}, {"name": "File de salmao", "qty": "1kg"}, {"name": "Bacalhau", "qty": "1kg"}]}, {"name": "Bebidas", "items": [{"name": "Agua de coco", "qty": "10 unidades"}, {"name": "Ice tea limao zero", "qty": "6 unidades"}, {"name": "Mate normal", "qty": "6 unidades"}, {"name": "Po para mate", "qty": "1kg"}, {"name": "Mate zero", "qty": "6 unidades"}, {"name": "Coca zero", "qty": "3 unidades"}, {"name": "Cafe solavel", "qty": "4 pacotes"}, {"name": "Cafe em po", "qty": "1kg"}, {"name": "Filtro de cafe", "qty": "1 pacote"}]}, {"name": "Snacks", "items": [{"name": "Biscoito creme cracker", "qty": "3 unidades"}, {"name": "Biscoito maisena", "qty": "6 pacotes"}, {"name": "Biscoito de arroz", "qty": "2 pacotes"}, {"name": "Biscoito de polvilho", "qty": "2 pacotes"}, {"name": "Barra de cereal", "qty": "2 pacotes"}, {"name": "Chocolate meio amargo", "qty": "2 barras"}, {"name": "Batata palha", "qty": "3 pacotes"}, {"name": "Amendoim", "qty": "5 unidades"}, {"name": "Pipoca de microondas", "qty": "8 unidades"}, {"name": "Pao de queijo", "qty": "2 sacos"}]}, {"name": "Temperos", "items": [{"name": "Sal", "qty": "1kg"}, {"name": "Azeite salada", "qty": "2 unidades"}, {"name": "Azeite cozinhar", "qty": "2 unidades"}, {"name": "Oleo de girassol", "qty": "1 unidade"}, {"name": "Oleo de coco", "qty": "1 vidro"}, {"name": "Vinagre de vinho", "qty": "1 unidade"}, {"name": "Oregano", "qty": "1 pacote"}, {"name": "Curry", "qty": "1 pacote"}, {"name": "Pimenta", "qty": "1 unidade"}, {"name": "Canela", "qty": "1 unidade"}, {"name": "Ketchup", "qty": "1 unidade"}, {"name": "Mostarda", "qty": "1 unidade"}, {"name": "Molho shoyo", "qty": "1 unidade"}, {"name": "Mel", "qty": "1 vidro"}, {"name": "Nutella", "qty": "1 vidro"}]}, {"name": "Limpeza", "items": [{"name": "Papel higienico", "qty": "16 rolos"}, {"name": "Papel toalha", "qty": "2 embalagens"}, {"name": "Guardanapo", "qty": "2 pacotes"}, {"name": "Limpa vidro", "qty": "1 unidade"}, {"name": "Veja multiuso", "qty": "1 unidade"}, {"name": "Desinfetante banheiro", "qty": "1 unidade"}, {"name": "Detergente glicerina", "qty": "3 unidades"}, {"name": "CIF", "qty": "1 unidade"}, {"name": "Bombril", "qty": "1 unidade"}, {"name": "Esponja azul", "qty": "2 esponjas"}, {"name": "Esponja verde", "qty": "2 esponjas"}, {"name": "Pano de pia", "qty": "1 pacote"}, {"name": "Sabao Surf", "qty": "2kg"}, {"name": "Sabao liquido Ariel", "qty": "1 unidade"}, {"name": "Vanish branca", "qty": "1 unidade"}, {"name": "Vanish colorida", "qty": "1 unidade"}, {"name": "Saco de lixo", "qty": "1 rolo"}, {"name": "Papel filme", "qty": "1 unidade"}, {"name": "Papel laminado", "qty": "1 unidade"}]}, {"name": "Higiene", "items": [{"name": "Sabonete liquido", "qty": "1 unidade"}, {"name": "Sabonete", "qty": "4 unidades"}, {"name": "Pasta de dente", "qty": "4 unidades"}]}, {"name": "Paes", "items": [{"name": "Pao de forma integral", "qty": "1 saco"}, {"name": "Pao 7 graos", "qty": "1 saco"}, {"name": "Bisnaguinha", "qty": "1 saco"}]}]}};
 
-let recipes=[],menus={},shopping={},tags=[],isAdmin=false;
-let checks={semanal:{},mensal:{}},buyQty={semanal:{},mensal:{}};
-let currentShopTab='semanal',currentView='cardapio';
-let editingDayKey=null,editingRecipeId=null,activeTagFilter='todos',currentSrc='link';
+<main>
+  <div id="view-cardapio">
+    <h1>Cardápio Semanal</h1>
+    <p class="subtitle">Jantar para a família · cada preparo cobre 2 noites</p>
+    <div class="week-bar">
+      <span class="week-lbl">📅 Semana de:</span>
+      <div class="week-nav">
+        <button class="warrow" onclick="changeWeek(-1)">‹</button>
+        <div class="week-txt" id="week-txt">carregando...</div>
+        <button class="warrow" onclick="changeWeek(1)">›</button>
+      </div>
+      <button class="week-now" onclick="goToThisWeek()">Semana atual</button>
+    </div>
+    <div id="loading-c" class="loading"><div class="spinner"></div>Carregando...</div>
+    <div class="cards-grid hidden" id="cards-grid"></div>
+  </div>
+
+  <div id="view-receitas" class="hidden">
+    <div class="page-hd">
+      <div><h1>Banco de Receitas</h1><p class="subtitle" id="r-count"></p></div>
+      <button class="btn-add hidden" id="btn-add-recipe" onclick="openAddRecipe()">+ Nova receita</button>
+    </div>
+    <div id="tag-mgr-area"></div>
+    <div class="filter-bar" id="filter-bar"></div>
+    <div class="recipes-grid" id="recipes-grid"></div>
+  </div>
+
+  <div id="view-compras" class="hidden">
+    <h1>Lista de Compras</h1>
+    <p class="subtitle">Marque o que precisa, preencha <strong>o quanto comprar</strong> e clique em <strong>Gerar e Enviar</strong></p>
+    <div class="shop-tabs">
+      <button class="shop-tab active" id="tab-semanal" onclick="switchShopTab('semanal')">🛒 Semanal</button>
+      <button class="shop-tab" id="tab-mensal" onclick="switchShopTab('mensal')">📦 Mensal</button>
+    </div>
+    <div class="shop-controls">
+      <button class="sctrl" onclick="checkAll()">✓ Marcar tudo</button>
+      <button class="sctrl" onclick="uncheckAll()">✕ Desmarcar</button>
+      <button class="sctrl orange" onclick="resetAll()">↻ Resetar tudo</button>
+      <button class="sctrl send" onclick="generateAndSend()">📲 Gerar e Enviar para Bia</button>
+    </div>
+    <div id="shop-container"></div>
+    <div id="gen-container"></div>
+  </div>
+
+  <div id="view-historico" class="hidden">
+    <h1>Histórico de Listas</h1>
+    <p class="subtitle">Últimas 10 listas geradas · backup caso o WhatsApp falhe</p>
+    <div id="hist-container"><p style="color:#9AB89A;font-style:italic;text-align:center;padding:40px">Nenhuma lista gerada ainda.</p></div>
+  </div>
+</main>
+
+<!-- MODAIS -->
+<div class="modal-overlay" id="m-pin"><div class="modal"><div class="modal-hd"><span class="modal-title">🔐 Acesso Admin</span><button class="modal-close" onclick="closeModal('m-pin')">×</button></div><div class="modal-bd"><div class="fgroup"><label>PIN de 4 dígitos</label><input type="password" id="pin-inp" class="pin-input" maxlength="4" placeholder="••••" oninput="this.value=this.value.replace(/\D/g,'')" onkeydown="if(event.key==='Enter')checkPin()"/><div class="pin-err hidden" id="pin-err">PIN incorreto. Tente novamente.</div></div><button class="modal-save-btn" onclick="checkPin()">Entrar como Admin</button></div></div></div>
+
+<div class="modal-overlay" id="m-recipe"><div class="modal"><div class="modal-hd"><span class="modal-title" id="m-recipe-title">Nova Receita</span><button class="modal-close" onclick="closeModal('m-recipe')">×</button></div><div class="modal-bd"><input type="hidden" id="edit-recipe-id"/><div class="fgroup"><label>Nome da receita *</label><input type="text" id="r-name" placeholder="Ex: Frango ao limão"/></div><div class="fgroup"><label>Fonte da receita</label><div class="source-tabs"><button class="src-tab active" id="src-link" onclick="switchSrc('link')">🔗 Link externo</button><button class="src-tab" id="src-text" onclick="switchSrc('text')">📝 Digitar receita</button></div><div id="src-link-area"><input type="url" id="r-url" placeholder="https://..."/><p class="help-txt">Cole o link de qualquer site de receitas</p></div><div id="src-text-area" class="hidden"><textarea class="recipe-textarea" id="r-text" placeholder="Cole ou digite o texto completo da receita..."></textarea><p class="help-txt">O texto fica disponível para a cozinheira ler no site</p></div></div><div class="fgroup"><label>Marcadores</label><div class="tag-sel-row" id="tag-selector"></div></div><button class="modal-save-btn" onclick="saveRecipe()">Salvar receita</button></div></div></div>
+
+<div class="modal-overlay" id="m-menu"><div class="modal"><div class="modal-hd"><span class="modal-title" id="m-menu-title">Montar cardápio</span><button class="modal-close" onclick="closeModal('m-menu')">×</button></div><div class="modal-bd"><label style="margin-bottom:10px">Selecione as receitas do dia</label><div class="modal-filter-bar" id="modal-filter-bar"></div><div class="check-list" id="recipe-checklist"></div><div class="fgroup"><label>Observação para a cozinheira</label><textarea id="menu-note" placeholder="Ex: Deixar o frango marinando desde cedo..."></textarea></div><button class="modal-save-btn" onclick="saveMenu()">Salvar cardápio</button></div></div></div>
+
+<div class="modal-overlay" id="m-recipe-view"><div class="modal"><div class="modal-hd"><span class="modal-title" id="m-rv-title">Receita</span><button class="modal-close" onclick="closeModal('m-recipe-view')">×</button></div><div class="modal-bd" id="m-rv-body"></div></div></div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK v10 (modular via CDN compat) -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, doc, getDoc, setDoc, collection, addDoc, getDocs, deleteDoc, query, orderBy, limit, onSnapshot }
+  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+// =============================================
+// 🔥 CONFIGURAÇÃO FIREBASE
+// Substitua pelos valores do seu projeto Firebase
+// =============================================
+const firebaseConfig = {
+  apiKey: "AIzaSyDNGrGUO_22PskhgjdzDuuAmn-y3VFTVeg",
+  authDomain: "cardapiocasa-eb828.firebaseapp.com",
+  projectId: "cardapiocasa-eb828",
+  storageBucket: "cardapiocasa-eb828.firebasestorage.app",
+  messagingSenderId: "1024064868417",
+  appId: "1:1024064868417:web:a7102051b657269d76b6c0"
+};
+// =============================================
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// ─── constantes ───────────────────────────────────────────
+const WH_LISTA   = 'https://n8n.bian8n.cloud/webhook/enviar-lista-compras';
+const ADMIN_PIN  = '2580';
+const DAYS = [
+  {key:'seg',label:'Segunda-feira',serves:'Jantar 2ª e 3ª',color:'#4A7C59',offset:0},
+  {key:'qua',label:'Quarta-feira', serves:'Jantar 4ª e 5ª',color:'#3D6B8C',offset:2},
+  {key:'sex',label:'Sexta-feira',  serves:'Fim de semana',  color:'#8C5E3D',offset:4}
+];
+const DEFAULT_TAGS = [
+  {id:'t1',name:'Proteína',color:'#4A7C59'},{id:'t2',name:'Salada',color:'#2D7A4A'},
+  {id:'t3',name:'Saudável',color:'#3D8C5A'},{id:'t4',name:'Acompanhamento',color:'#7C5E3D'},
+  {id:'t5',name:'Família',color:'#3D6B8C'},{id:'t6',name:'Rápido',color:'#8C7A2D'},
+  {id:'t7',name:'Vegano',color:'#2D6B3D'},{id:'t8',name:'Fitness',color:'#2D5C8C'},
+  {id:'t9',name:'Especial',color:'#7A3D8C'},{id:'t10',name:'Peixe',color:'#2D7A8C'},
+  {id:'t11',name:'Frango',color:'#8C6A2D'},{id:'t12',name:'Prato único',color:'#6B3D8C'}
+];
+const DS = {"semanal":{"label":"Semanal","categories":[{"name":"Temperos","items":[{"name":"Alho","qty":"3 unidades"},{"name":"Cebola","qty":"3 unidades"},{"name":"Limao","qty":"3 unidades"}]},{"name":"Frutas","items":[{"name":"Banana","qty":"8 unidades"},{"name":"Mamao","qty":"1 unidade grande"},{"name":"Maca","qty":"2 unidades"},{"name":"Melao","qty":"1 unidade"},{"name":"Uva","qty":"1 cacho"}]},{"name":"Legumes e Verduras","items":[{"name":"Berinjela","qty":"3 unidades"},{"name":"Abobrinha","qty":"1 unidade"},{"name":"Alface","qty":"1 unidade"},{"name":"Rucula","qty":"1 unidade"},{"name":"Tomate","qty":"3 unidades"},{"name":"Tomate cereja","qty":"3 unidades"},{"name":"Couve flor","qty":"1 ramo"},{"name":"Brocolis","qty":"1 ramo"},{"name":"Cenoura","qty":"2 unidades"},{"name":"Abobora","qty":"1 unidade"},{"name":"Beterraba","qty":"1 unidade"},{"name":"Chuchu","qty":"1 unidade"},{"name":"Espinafre","qty":"1 ramo"},{"name":"Agriao","qty":"1 ramo"},{"name":"Couve","qty":"1 ramo"},{"name":"Batata inglesa","qty":"8 un / 700g"},{"name":"Batata Doce","qty":"4 un / 350g"},{"name":"Aipim","qty":"4 un / 350g"}]},{"name":"Ovos","items":[{"name":"Ovo","qty":"12 unidades"},{"name":"Ovo de codorna","qty":"1 caixa"}]},{"name":"Paes","items":[{"name":"Pao de forma","qty":"1 saco"},{"name":"Bisnaguinha","qty":"1 saco"}]},{"name":"Laticinios","items":[{"name":"Creme de ricota","qty":"1 unidade"},{"name":"Queijo cottage","qty":"1 unidade"},{"name":"Queijo minas","qty":"400g"},{"name":"Iogurte Yorgus","qty":"3 unidades"},{"name":"Iogurte","qty":"3 unidades"},{"name":"Mussarela","qty":"250g"}]},{"name":"Proteinas","items":[{"name":"Patinho para kibe","qty":"500g"},{"name":"File de tilapia","qty":"1kg"},{"name":"File de atum","qty":"1kg"},{"name":"File de salmao","qty":"1kg"},{"name":"Bacalhau","qty":"1kg"},{"name":"Carne moida","qty":"250g"},{"name":"Figado","qty":"250g"}]},{"name":"Castanhas","items":[{"name":"Castanha de caju","qty":"200g"},{"name":"Gojiberry","qty":"200g"},{"name":"Cramberry","qty":"200g"},{"name":"Blueberry","qty":"200g"}]}]},"mensal":{"label":"Mensal","categories":[{"name":"Graos e Massas","items":[{"name":"Arroz integral","qty":"3kg"},{"name":"Arroz arboreo","qty":"1 embalagem"},{"name":"Arroz 7 cereais","qty":"1 embalagem"},{"name":"Macarrao spaguetti","qty":"500g"},{"name":"Massa para lasanha","qty":"500g"},{"name":"Feijao","qty":"2kg"},{"name":"Grao de bico","qty":"2 sacos"},{"name":"Lentilha","qty":"1 saco"},{"name":"Aveia","qty":"2 sacos 1kg"},{"name":"Quinoa","qty":"1 pacote"},{"name":"Couscous marroquino","qty":"1 pacote"},{"name":"Chia","qty":"1 pacote"},{"name":"Tapioca","qty":"3 pacotes"},{"name":"Farinha de trigo","qty":"2kg"}]},{"name":"Enlatados","items":[{"name":"Milho","qty":"8 latas"},{"name":"Tomate pelado","qty":"3 latas"},{"name":"Molho de tomate","qty":"3 garrafas"},{"name":"Palmito","qty":"4 latas"},{"name":"Atum","qty":"5 latas"},{"name":"Creme de leite","qty":"8 latas"}]},{"name":"Laticinios","items":[{"name":"Leite de castanha","qty":"15 caixas"},{"name":"Leite em po","qty":"1 lata"},{"name":"Leite desnatado","qty":"3 caixas"},{"name":"Requeijao","qty":"5 unidades"},{"name":"Manteiga com sal","qty":"2 unidades"},{"name":"Manteiga sem sal","qty":"2 unidades"},{"name":"Queijo ralado","qty":"4 un 100g"},{"name":"Iogurte Ninho","qty":"1 bandeja"},{"name":"Iogurte Danoninho","qty":"1 bandeja"}]},{"name":"Proteinas","items":[{"name":"Peito de frango","qty":"10 unidades"},{"name":"Sobrecoxa de frango","qty":"5 unidades"},{"name":"Carne moida","qty":"250g"},{"name":"Nuggets","qty":"1 pacote"},{"name":"File de tilapia","qty":"1kg"},{"name":"File de salmao","qty":"1kg"},{"name":"Bacalhau","qty":"1kg"}]},{"name":"Bebidas","items":[{"name":"Agua de coco","qty":"10 unidades"},{"name":"Ice tea limao zero","qty":"6 unidades"},{"name":"Mate normal","qty":"6 unidades"},{"name":"Po para mate","qty":"1kg"},{"name":"Mate zero","qty":"6 unidades"},{"name":"Coca zero","qty":"3 unidades"},{"name":"Cafe solavel","qty":"4 pacotes"},{"name":"Cafe em po","qty":"1kg"},{"name":"Filtro de cafe","qty":"1 pacote"}]},{"name":"Snacks","items":[{"name":"Biscoito creme cracker","qty":"3 unidades"},{"name":"Biscoito maisena","qty":"6 pacotes"},{"name":"Biscoito de arroz","qty":"2 pacotes"},{"name":"Biscoito de polvilho","qty":"2 pacotes"},{"name":"Barra de cereal","qty":"2 pacotes"},{"name":"Chocolate meio amargo","qty":"2 barras"},{"name":"Batata palha","qty":"3 pacotes"},{"name":"Amendoim","qty":"5 unidades"},{"name":"Pipoca de microondas","qty":"8 unidades"},{"name":"Pao de queijo","qty":"2 sacos"}]},{"name":"Temperos","items":[{"name":"Sal","qty":"1kg"},{"name":"Azeite salada","qty":"2 unidades"},{"name":"Azeite cozinhar","qty":"2 unidades"},{"name":"Oleo de girassol","qty":"1 unidade"},{"name":"Oleo de coco","qty":"1 vidro"},{"name":"Vinagre de vinho","qty":"1 unidade"},{"name":"Oregano","qty":"1 pacote"},{"name":"Curry","qty":"1 pacote"},{"name":"Pimenta","qty":"1 unidade"},{"name":"Canela","qty":"1 unidade"},{"name":"Ketchup","qty":"1 unidade"},{"name":"Mostarda","qty":"1 unidade"},{"name":"Molho shoyo","qty":"1 unidade"},{"name":"Mel","qty":"1 vidro"},{"name":"Nutella","qty":"1 vidro"}]},{"name":"Limpeza","items":[{"name":"Papel higienico","qty":"16 rolos"},{"name":"Papel toalha","qty":"2 embalagens"},{"name":"Guardanapo","qty":"2 pacotes"},{"name":"Limpa vidro","qty":"1 unidade"},{"name":"Veja multiuso","qty":"1 unidade"},{"name":"Desinfetante banheiro","qty":"1 unidade"},{"name":"Detergente glicerina","qty":"3 unidades"},{"name":"CIF","qty":"1 unidade"},{"name":"Bombril","qty":"1 unidade"},{"name":"Esponja azul","qty":"2 esponjas"},{"name":"Esponja verde","qty":"2 esponjas"},{"name":"Pano de pia","qty":"1 pacote"},{"name":"Sabao Surf","qty":"2kg"},{"name":"Sabao liquido Ariel","qty":"1 unidade"},{"name":"Vanish branca","qty":"1 unidade"},{"name":"Vanish colorida","qty":"1 unidade"},{"name":"Saco de lixo","qty":"1 rolo"},{"name":"Papel filme","qty":"1 unidade"},{"name":"Papel laminado","qty":"1 unidade"}]},{"name":"Higiene","items":[{"name":"Sabonete liquido","qty":"1 unidade"},{"name":"Sabonete","qty":"4 unidades"},{"name":"Pasta de dente","qty":"4 unidades"}]},{"name":"Paes","items":[{"name":"Pao de forma integral","qty":"1 saco"},{"name":"Pao 7 graos","qty":"1 saco"},{"name":"Bisnaguinha","qty":"1 saco"}]}]}};
+
+// ─── estado ───────────────────────────────────────────────
+let recipes=[], menus={}, shopping={}, tags=[], historicoList=[];
+let isAdmin=false;
+let checks={semanal:{},mensal:{}}, buyQty={semanal:{},mensal:{}};
+let currentShopTab='semanal', currentView='cardapio';
+let editingDayKey=null, editingRecipeId=null, activeTagFilter='todos', currentSrc='link';
 let weekMonday=getThisWeekMonday();
-function getThisWeekMonday(){const d=new Date(),day=d.getDay(),diff=day===0?-6:1-day,m=new Date(d);m.setDate(d.getDate()+diff);m.setHours(0,0,0,0);return m;}
+let menuFilterTag='todos';
+
+// ─── status firebase ──────────────────────────────────────
+function setFbStatus(state){
+  const el=document.getElementById('fb-status');
+  const txt=document.getElementById('fb-status-txt');
+  el.className='fb-status '+state;
+  txt.textContent=state==='online'?'Online':state==='offline'?'Offline':'Conectando...';
+}
+
+// ─── funções de data ──────────────────────────────────────
+function getThisWeekMonday(){
+  const d=new Date(),day=d.getDay(),diff=day===0?-6:1-day,m=new Date(d);
+  m.setDate(d.getDate()+diff);m.setHours(0,0,0,0);return m;
+}
 function changeWeek(delta){weekMonday=new Date(weekMonday);weekMonday.setDate(weekMonday.getDate()+delta*7);renderWeekBar();renderCardapio();}
 function goToThisWeek(){weekMonday=getThisWeekMonday();renderWeekBar();renderCardapio();}
 function getWeekDates(){return DAYS.map(d=>{const dt=new Date(weekMonday);dt.setDate(weekMonday.getDate()+d.offset);return dt;});}
-function renderWeekBar(){const dates=getWeekDates();const mon=dates[0],fri=dates[2];document.getElementById('week-txt').textContent=mon.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})+' \u2014 '+fri.toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});}
-async function loadFromGist(){try{const res=await fetch('https://gist.githubusercontent.com/biaxmachado-jpg/'+GIST_ID+'/raw/cardapio.json?t='+Date.now());const d=await res.json();recipes=d.recipes||[];menus=d.menus||{};shopping=(d.shopping&&Object.keys(d.shopping).length)?d.shopping:JSON.parse(JSON.stringify(DS));tags=(d.tags&&d.tags.length)?d.tags:JSON.parse(JSON.stringify(DEFAULT_TAGS));return true;}catch(e){return false;}}
-async function saveToGist(){const btn=document.getElementById('btn-save');btn.disabled=true;btn.textContent='Salvando...';try{const res=await fetch(GIST_API,{method:'PATCH',headers:{'Authorization':'token '+GH_TOKEN,'Accept':'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({files:{'cardapio.json':{content:JSON.stringify({recipes,menus,shopping,tags},null,2)}}})});showToast(res.ok?'\u2705 Salvo!':'\u274c Erro ao salvar.');}catch(e){showToast('\u274c Sem conex\u00e3o.');}btn.disabled=false;btn.textContent='\ud83d\udcbe Salvar';}
-const byId=id=>recipes.find(r=>r.id===id);
-const tagById=id=>tags.find(t=>t.id===id);
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
+function renderWeekBar(){
+  const dates=getWeekDates();
+  document.getElementById('week-txt').textContent=
+    dates[0].toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})+' — '+
+    dates[2].toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+// ─── firebase: carregar ───────────────────────────────────
+async function loadFromFirebase(){
+  try {
+    setFbStatus('connecting');
+
+    // cardápio principal
+    const mainDoc = await getDoc(doc(db,'cardapio','main'));
+    if(mainDoc.exists()){
+      const d=mainDoc.data();
+      recipes  = d.recipes  || [];
+      menus    = d.menus    || {};
+      shopping = (d.shopping && Object.keys(d.shopping).length) ? d.shopping : JSON.parse(JSON.stringify(DS));
+      tags     = (d.tags && d.tags.length) ? d.tags : JSON.parse(JSON.stringify(DEFAULT_TAGS));
+    } else {
+      // primeira vez: inicializa com defaults
+      recipes=[];menus={};
+      shopping=JSON.parse(JSON.stringify(DS));
+      tags=JSON.parse(JSON.stringify(DEFAULT_TAGS));
+    }
+
+    // histórico
+    const histSnap = await getDocs(query(collection(db,'historico'),orderBy('date','desc'),limit(10)));
+    historicoList = histSnap.docs.map(d=>({id:d.id,...d.data()}));
+
+    setFbStatus('online');
+    return true;
+  } catch(e){
+    console.error('Firebase load error:',e);
+    setFbStatus('offline');
+    return false;
+  }
+}
+
+// ─── firebase: salvar ─────────────────────────────────────
+async function saveToFirebase(){
+  const btn=document.getElementById('btn-save');
+  btn.disabled=true;btn.textContent='Salvando...';
+  try {
+    await setDoc(doc(db,'cardapio','main'),{recipes,menus,shopping,tags});
+    showToast('✅ Salvo com sucesso!');
+    setFbStatus('online');
+  } catch(e){
+    console.error('Firebase save error:',e);
+    showToast('❌ Erro ao salvar. Verifique a conexão.');
+    setFbStatus('offline');
+  }
+  btn.disabled=false;btn.textContent='💾 Salvar';
+}
+
+async function saveToHistory(lista,tab){
+  const entry={tab,date:new Date().toISOString(),lista};
+  try {
+    const docRef = await addDoc(collection(db,'historico'),entry);
+    historicoList.unshift({id:docRef.id,...entry});
+    if(historicoList.length>10) historicoList=historicoList.slice(0,10);
+  } catch(e){
+    // fallback para localStorage
+    let hist=JSON.parse(localStorage.getItem('cardapio_hist')||'[]');
+    hist.unshift({id:'h'+Date.now(),...entry});
+    if(hist.length>10)hist=hist.slice(0,10);
+    localStorage.setItem('cardapio_hist',JSON.stringify(hist));
+    historicoList=hist;
+  }
+  renderHistorico();
+}
+
+// ─── utilitários ──────────────────────────────────────────
+const byId    = id=>recipes.find(r=>r.id===id);
+const tagById = id=>tags.find(t=>t.id===id);
+
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function openModal(id){document.getElementById(id).classList.add('open');}
 function fmtDT(d){return d.toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',weekday:'long',day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});}
 function renderTagBadges(tids){return(tids||[]).map(tid=>{const t=tagById(tid);return t?'<span class="tag" style="background:'+t.color+'">'+t.name+'</span>':''}).join('');}
-function switchView(v){currentView=v;['cardapio','receitas','compras','historico'].forEach(n=>{document.getElementById('view-'+n).classList.toggle('hidden',n!==v);document.getElementById('btn-'+n).classList.toggle('active',n===v);});}
-function saveData(){saveToGist();}
-function openPin(){document.getElementById('pin-inp').value='';document.getElementById('pin-err').classList.add('hidden');openModal('m-pin');setTimeout(()=>document.getElementById('pin-inp').focus(),100);}
-function checkPin(){if(document.getElementById('pin-inp').value===ADMIN_PIN){isAdmin=true;closeModal('m-pin');document.getElementById('admin-pill').classList.remove('hidden');document.getElementById('btn-admin').classList.add('hidden');document.getElementById('btn-save').classList.remove('hidden');showToast('\ud83d\udc51 Modo admin ativado!');renderAll();}else{document.getElementById('pin-err').classList.remove('hidden');document.getElementById('pin-inp').value='';}}
-function renderCardapio(){document.getElementById('loading-c').classList.add('hidden');const g=document.getElementById('cards-grid');g.classList.remove('hidden');const dates=getWeekDates();g.innerHTML=DAYS.map(({key,label,serves,color},idx)=>{const menu=menus[key]||{recipeIds:[],notes:''};const dt=dates[idx];const dtStr=dt.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'});const cookStr='Cozinhar em '+dtStr.charAt(0).toUpperCase()+dtStr.slice(1);const editBtn=isAdmin?'<button class="card-edit-btn" onclick="openMenuEdit(\''+key+'\')">&#9998; Editar</button>':'';const items=!menu.recipeIds||menu.recipeIds.length===0?'<div class="empty-slot">Nenhuma receita definida</div>':menu.recipeIds.map((rid,i)=>{const r=byId(rid);if(!r)return'';const hasText=r.text&&r.text.trim();const viewBtn=hasText?'<button onclick="viewRecipe(\''+r.id+'\')" style="font-size:11px;color:#78B060;background:none;border:none;cursor:pointer;padding:0;margin-top:3px;display:block">\ud83d\udccb Ver receita</button>':'';return'<div class="recipe-item" style="'+(i===menu.recipeIds.length-1?'border-bottom:none':'')+'"><div class="rdot" style="background:'+color+'"></div><div><div class="rname">'+r.name+'</div><div class="tags-row">'+renderTagBadges(r.tags)+'</div>'+(r.url?'<a href="'+r.url+'" target="_blank" class="rlink">\ud83d\udd17 Ver receita</a>':viewBtn)+'</div></div>';}).join('');return'<div class="day-card"><div class="card-hd" style="background:'+color+'"><div><div class="card-cook">'+cookStr+'</div><div class="card-date">'+dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'long'})+'</div><div class="card-day">'+label+'</div><div class="card-serves">\ud83c\udf7d '+serves+'</div></div>'+editBtn+'</div><div class="card-bd">'+items+(menu.notes?'<div class="note-box">\ud83d\udca1 '+menu.notes+'</div>':'')+'</div></div>';}).join('');}
-function viewRecipe(id){const r=byId(id);if(!r)return;document.getElementById('m-rv-title').textContent=r.name;document.getElementById('m-rv-body').innerHTML='<div class="tags-row" style="margin-bottom:14px">'+renderTagBadges(r.tags)+'</div>'+(r.url?'<a href="'+r.url+'" target="_blank" class="rlink" style="margin-bottom:14px;display:inline-flex">\ud83d\udd17 Link externo</a>':'')+'<div style="white-space:pre-wrap;font-size:13px;line-height:1.7;color:#1E2D1E">'+((r.text||'').replace(/</g,'&lt;'))+'</div>';openModal('m-recipe-view');}
-function renderTagManager(){const area=document.getElementById('tag-mgr-area');if(!isAdmin){area.innerHTML='';return;}area.innerHTML='<div class="tag-manager"><div class="tag-mgr-title">\ud83c\udff7 Gerenciar marcadores</div><div class="tags-list">'+tags.map(t=>'<div class="tag-pill" style="background:'+t.color+'">'+t.name+'<button class="tag-del" onclick="deleteTag(\''+t.id+'\')">&#215;</button></div>').join('')+'</div><div class="add-tag-row"><input class="tag-name-inp" id="new-tag-name" placeholder="Nome do marcador" maxlength="20" onkeydown="if(event.key===\'Enter\')addTag()"/><input type="color" class="color-inp" id="new-tag-color" value="#4A7C59" title="Cor"/><button class="btn-sm" onclick="addTag()">+ Adicionar</button></div></div>';}
-function addTag(){const name=document.getElementById('new-tag-name').value.trim(),color=document.getElementById('new-tag-color').value;if(!name)return;tags.push({id:'t'+Date.now(),name,color});document.getElementById('new-tag-name').value='';renderAll();}
-function deleteTag(id){if(!confirm('Remover este marcador?'))return;tags=tags.filter(t=>t.id!==id);recipes.forEach(r=>{if(r.tags)r.tags=r.tags.filter(tid=>tid!==id);});renderAll();}
-function renderFilterBar(){const bar=document.getElementById('filter-bar');bar.innerHTML='<button class="fchip '+(activeTagFilter==='todos'?'active':'')+'" onclick="filterByTag(\'todos\',this)">Todas</button>'+tags.map(t=>'<button class="fchip '+(activeTagFilter===t.id?'active':'')+'" onclick="filterByTag(\''+t.id+'\',this)" style="'+(activeTagFilter===t.id?'background:'+t.color+';border-color:'+t.color+';color:#fff':'')+'">'+t.name+'</button>').join('');}
+
+function switchView(v){
+  currentView=v;
+  ['cardapio','receitas','compras','historico'].forEach(n=>{
+    document.getElementById('view-'+n).classList.toggle('hidden',n!==v);
+    document.getElementById('btn-'+n).classList.toggle('active',n===v);
+  });
+}
+
+function saveData(){saveToFirebase();}
+
+// ─── admin / pin ──────────────────────────────────────────
+function openPin(){
+  document.getElementById('pin-inp').value='';
+  document.getElementById('pin-err').classList.add('hidden');
+  openModal('m-pin');
+  setTimeout(()=>document.getElementById('pin-inp').focus(),100);
+}
+function checkPin(){
+  if(document.getElementById('pin-inp').value===ADMIN_PIN){
+    isAdmin=true;closeModal('m-pin');
+    document.getElementById('admin-pill').classList.remove('hidden');
+    document.getElementById('btn-admin').classList.add('hidden');
+    document.getElementById('btn-save').classList.remove('hidden');
+    showToast('👑 Modo admin ativado!');renderAll();
+  } else {
+    document.getElementById('pin-err').classList.remove('hidden');
+    document.getElementById('pin-inp').value='';
+  }
+}
+
+// ─── cardápio ─────────────────────────────────────────────
+function renderCardapio(){
+  document.getElementById('loading-c').classList.add('hidden');
+  const g=document.getElementById('cards-grid');g.classList.remove('hidden');
+  const dates=getWeekDates();
+  g.innerHTML=DAYS.map(({key,label,serves,color},idx)=>{
+    const menu=menus[key]||{recipeIds:[],notes:''};
+    const dt=dates[idx];
+    const dtStr=dt.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'});
+    const cookStr='Cozinhar em '+dtStr.charAt(0).toUpperCase()+dtStr.slice(1);
+    const editBtn=isAdmin?'<button class="card-edit-btn" onclick="openMenuEdit(\''+key+'\')">✏ Editar</button>':'';
+    const items=!menu.recipeIds||menu.recipeIds.length===0
+      ?'<div class="empty-slot">Nenhuma receita definida</div>'
+      :menu.recipeIds.map((rid,i)=>{
+        const r=byId(rid);if(!r)return'';
+        const hasText=r.text&&r.text.trim();
+        const viewBtn=hasText?'<button onclick="viewRecipe(\''+r.id+'\')" style="font-size:11px;color:#78B060;background:none;border:none;cursor:pointer;padding:0;margin-top:3px;display:block">📋 Ver receita</button>':'';
+        return'<div class="recipe-item" style="'+(i===menu.recipeIds.length-1?'border-bottom:none':'')+'"><div class="rdot" style="background:'+color+'"></div><div><div class="rname">'+r.name+'</div><div class="tags-row">'+renderTagBadges(r.tags)+'</div>'+(r.url?'<a href="'+r.url+'" target="_blank" class="rlink">🔗 Ver receita</a>':viewBtn)+'</div></div>';
+      }).join('');
+    return'<div class="day-card"><div class="card-hd" style="background:'+color+'"><div><div class="card-cook">'+cookStr+'</div><div class="card-date">'+dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'long'})+'</div><div class="card-day">'+label+'</div><div class="card-serves">🍽 '+serves+'</div></div>'+editBtn+'</div><div class="card-bd">'+items+(menu.notes?'<div class="note-box">💡 '+menu.notes+'</div>':'')+'</div></div>';
+  }).join('');
+}
+
+function viewRecipe(id){
+  const r=byId(id);if(!r)return;
+  document.getElementById('m-rv-title').textContent=r.name;
+  document.getElementById('m-rv-body').innerHTML='<div class="tags-row" style="margin-bottom:14px">'+renderTagBadges(r.tags)+'</div>'+(r.url?'<a href="'+r.url+'" target="_blank" class="rlink" style="margin-bottom:14px;display:inline-flex">🔗 Link externo</a>':'')+'<div style="white-space:pre-wrap;font-size:13px;line-height:1.7;color:#1E2D1E">'+((r.text||'').replace(/</g,'&lt;'))+'</div>';
+  openModal('m-recipe-view');
+}
+
+// ─── receitas ─────────────────────────────────────────────
+function renderTagManager(){
+  const area=document.getElementById('tag-mgr-area');
+  if(!isAdmin){area.innerHTML='';return;}
+  area.innerHTML='<div class="tag-manager"><div class="tag-mgr-title">🏷 Gerenciar marcadores</div><div class="tags-list">'+tags.map(t=>'<div class="tag-pill" style="background:'+t.color+'">'+t.name+'<button class="tag-del" onclick="deleteTag(\''+t.id+'\')">×</button></div>').join('')+'</div><div class="add-tag-row"><input class="tag-name-inp" id="new-tag-name" placeholder="Nome do marcador" maxlength="20" onkeydown="if(event.key===\'Enter\')addTag()"/><input type="color" class="color-inp" id="new-tag-color" value="#4A7C59" title="Cor"/><button class="btn-sm" onclick="addTag()">+ Adicionar</button></div></div>';
+}
+function addTag(){
+  const name=document.getElementById('new-tag-name').value.trim(),color=document.getElementById('new-tag-color').value;
+  if(!name)return;tags.push({id:'t'+Date.now(),name,color});
+  document.getElementById('new-tag-name').value='';renderAll();
+}
+function deleteTag(id){
+  if(!confirm('Remover este marcador?'))return;
+  tags=tags.filter(t=>t.id!==id);
+  recipes.forEach(r=>{if(r.tags)r.tags=r.tags.filter(tid=>tid!==id);});renderAll();
+}
+function renderFilterBar(){
+  const bar=document.getElementById('filter-bar');
+  bar.innerHTML='<button class="fchip '+(activeTagFilter==='todos'?'active':'')+'" onclick="filterByTag(\'todos\',this)">Todas</button>'+tags.map(t=>'<button class="fchip '+(activeTagFilter===t.id?'active':'')+'" onclick="filterByTag(\''+t.id+'\',this)" style="'+(activeTagFilter===t.id?'background:'+t.color+';border-color:'+t.color+';color:#fff':'')+'">'+t.name+'</button>').join('');
+}
 function filterByTag(tagId,el){activeTagFilter=tagId;document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderReceitas();}
-function renderReceitas(){renderTagManager();renderFilterBar();document.getElementById('btn-add-recipe').classList.toggle('hidden',!isAdmin);const filtered=activeTagFilter==='todos'?recipes:recipes.filter(r=>(r.tags||[]).includes(activeTagFilter));document.getElementById('r-count').textContent=filtered.length+' de '+recipes.length+' receitas';document.getElementById('recipes-grid').innerHTML=filtered.map(r=>{const hasText=r.text&&r.text.trim();const adminBtns=isAdmin?'<div class="rc-btns"><button class="btn-icon" onclick="editRecipe(\''+r.id+'\')" title="Editar">&#9998;&#65039;</button><button class="btn-icon" onclick="deleteRecipe(\''+r.id+'\')" title="Remover">&#128465;&#65039;</button></div>':'';const linkPart=r.url?'<a href="'+r.url+'" target="_blank" class="rlink">\ud83d\udd17 Abrir receita</a>':hasText?'<button onclick="viewRecipe(\''+r.id+'\')" style="font-size:12px;color:#78B060;background:none;border:none;cursor:pointer;padding:0">\ud83d\udccb Ver receita completa</button>':'<span class="no-link">Sem link</span>';return'<div class="recipe-card"><div class="rc-hd"><div class="rc-name">'+r.name+'</div>'+adminBtns+'</div><div class="tags-row">'+renderTagBadges(r.tags)+'</div>'+linkPart+'</div>';}).join('')||'<div style="grid-column:1/-1;text-align:center;color:#9AB89A;padding:30px;font-style:italic">Nenhuma receita com este marcador.</div>';}
-function switchSrc(src){currentSrc=src;document.getElementById('src-link').classList.toggle('active',src==='link');document.getElementById('src-text').classList.toggle('active',src==='text');document.getElementById('src-link-area').classList.toggle('hidden',src!=='link');document.getElementById('src-text-area').classList.toggle('hidden',src!=='text');}
-function openAddRecipe(){editingRecipeId=null;document.getElementById('m-recipe-title').textContent='Nova Receita';['edit-recipe-id','r-name','r-url','r-text'].forEach(id=>document.getElementById(id).value='');switchSrc('link');renderTagSelector([]);openModal('m-recipe');}
-function editRecipe(id){const r=byId(id);if(!r)return;editingRecipeId=id;document.getElementById('m-recipe-title').textContent='Editar Receita';document.getElementById('edit-recipe-id').value=id;document.getElementById('r-name').value=r.name;document.getElementById('r-url').value=r.url||'';document.getElementById('r-text').value=r.text||'';switchSrc((r.text&&r.text.trim()&&!r.url)?'text':'link');renderTagSelector(r.tags||[]);openModal('m-recipe');}
-function renderTagSelector(selected){document.getElementById('tag-selector').innerHTML=tags.map(t=>'<div class="tag-sel-chip '+(selected.includes(t.id)?'sel':'')+'" style="background:'+t.color+'" data-tid="'+t.id+'" onclick="this.classList.toggle(\'sel\')">'+t.name+'</div>').join('');}
-function saveRecipe(){const name=document.getElementById('r-name').value.trim();if(!name)return;const selTags=[...document.querySelectorAll('#tag-selector .tag-sel-chip.sel')].map(el=>el.dataset.tid).filter(Boolean);const rData={name,url:currentSrc==='link'?document.getElementById('r-url').value.trim():'',text:currentSrc==='text'?document.getElementById('r-text').value.trim():'',tags:selTags};if(editingRecipeId){const idx=recipes.findIndex(r=>r.id===editingRecipeId);if(idx>-1)recipes[idx]={...recipes[idx],...rData};}else{recipes.push({id:'r'+Date.now(),...rData});}closeModal('m-recipe');renderAll();}
-function deleteRecipe(id){if(!confirm('Remover esta receita?'))return;recipes=recipes.filter(r=>r.id!==id);Object.keys(menus).forEach(k=>{menus[k].recipeIds=(menus[k].recipeIds||[]).filter(rid=>rid!==id);});renderAll();}
-let menuFilterTag='todos';function renderModalFilterBar(){const bar=document.getElementById('modal-filter-bar');bar.innerHTML='<button class="mfchip '+(menuFilterTag==='todos'?'active':'')+'" onclick="setMenuFilter(\'todos\')">Todas</button>'+tags.map(t=>'<button class="mfchip '+(menuFilterTag===t.id?'active':'')+'" style="'+(menuFilterTag===t.id?'background:'+t.color+';border-color:'+t.color+';color:#fff':'')+'" onclick="setMenuFilter(\''+t.id+'\')">'+ t.name+'</button>').join('');}function setMenuFilter(tagId){menuFilterTag=tagId;renderModalFilterBar();renderRecipeChecklist();}function renderRecipeChecklist(){const sel=(menus[editingDayKey]?.recipeIds||[]);const filtered=menuFilterTag==='todos'?recipes:recipes.filter(r=>(r.tags||[]).includes(menuFilterTag));document.getElementById('recipe-checklist').innerHTML=filtered.length===0?'<div style="text-align:center;color:#9AB89A;padding:16px;font-style:italic">Nenhuma receita com este marcador.</div>':filtered.map(r=>{const on=sel.includes(r.id);return'<div class="chk-item '+(on?'sel':'')+'" data-id="'+r.id+'" onclick="this.classList.toggle(\'sel\');this.querySelector(\'.chkbox\').textContent=this.classList.contains(\'sel\')?String.fromCharCode(10003):null">'+'<div class="chkbox">'+(on?'&#10003;':'')+'</div>'+'<div><div style="font-size:13px;font-weight:600">'+r.name+'</div>'+'<div class="tags-row">'+renderTagBadges(r.tags)+'</div></div></div>';}).join('');}function openMenuEdit(key){editingDayKey=key;const dates=getWeekDates();const dayIdx=DAYS.findIndex(d=>d.key===key);const dt=dates[dayIdx];document.getElementById('m-menu-title').textContent='Card\u00e1pio \u2014 '+dt.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});document.getElementById('menu-note').value=menus[key]?.notes||'';menuFilterTag='todos';renderModalFilterBar();renderRecipeChecklist();openModal('m-menu');}
-function saveMenu(){const visibleSel=[...document.querySelectorAll('#recipe-checklist .chk-item.sel')].map(el=>el.dataset.id);const prevSel=menus[editingDayKey]?.recipeIds||[];const visibleIds=new Set([...document.querySelectorAll('#recipe-checklist .chk-item')].map(el=>el.dataset.id));const keptFromOther=prevSel.filter(id=>!visibleIds.has(id));menus[editingDayKey]={recipeIds:[...keptFromOther,...visibleSel],notes:document.getElementById('menu-note').value.trim()};closeModal('m-menu');renderAll();}
-function switchShopTab(tab){currentShopTab=tab;document.getElementById('tab-semanal').classList.toggle('active',tab==='semanal');document.getElementById('tab-mensal').classList.toggle('active',tab==='mensal');document.getElementById('gen-container').innerHTML='';renderShop();}
-function renderShop(){const list=shopping[currentShopTab];const c=document.getElementById('shop-container');if(!list){c.innerHTML='';return;}c.innerHTML=list.categories.map((cat,ci)=>{const itemsHtml=cat.items.map((item,ii)=>{const k=ci+'-'+ii;const on=checks[currentShopTab][k]||false;const bqVal=buyQty[currentShopTab][k]||'';const rightCol='<div class="item-right"><span class="qty-ref">Meta: '+item.qty+'</span><div class="qty-buy-wrap"><span class="qty-buy-label">Comprar:</span><input class="qty-buy-inp" placeholder="ex: 2kg" value="'+bqVal+'" onchange="setBuyQty('+ci+','+ii+',this.value)" onclick="event.stopPropagation()"/></div>'+(isAdmin?'<input class="qty-admin-inp" value="'+item.qty+'" onchange="updateQtyRef('+ci+','+ii+',this.value)" onclick="event.stopPropagation()" title="Editar meta (admin)"/><button class="idel" onclick="delItem('+ci+','+ii+')">&#128465;</button>':'')+'</div>';return'<div class="shop-item '+(on?'checked':'')+'" id="si-'+ci+'-'+ii+'"><div class="ichk '+(on?'on':'')+'" onclick="toggleCheck('+ci+','+ii+')">'+(on?'&#10003;':'')+'</div><span class="iname">'+item.name+'</span>'+rightCol+'</div>';}).join('');const marked=cat.items.filter((_,ii)=>checks[currentShopTab][ci+'-'+ii]).length;const addRow=isAdmin?'<div class="add-item-row"><input class="aii" id="ni-'+ci+'" placeholder="Novo item..." onkeydown="if(event.key===\'Enter\')addItem('+ci+')"/><input class="aiq" id="nq-'+ci+'" placeholder="Qtd referencia..." onkeydown="if(event.key===\'Enter\')addItem('+ci+')"/><button class="aib" onclick="addItem('+ci+')">+</button></div>':'';return'<div class="shop-category"><div class="shop-cat-hd" onclick="toggleCat('+ci+')"><span>'+cat.name+'</span><span class="shop-cat-count">'+marked+'/'+cat.items.length+' marcados</span></div><div class="shop-items" id="cat-'+ci+'">'+itemsHtml+'</div>'+addRow+'</div>';}).join('');if(isAdmin){c.innerHTML+='<button class="btn-add" style="margin-top:10px" onclick="addCategory()">+ Nova categoria</button>';}}
+function renderReceitas(){
+  renderTagManager();renderFilterBar();
+  document.getElementById('btn-add-recipe').classList.toggle('hidden',!isAdmin);
+  const filtered=activeTagFilter==='todos'?recipes:recipes.filter(r=>(r.tags||[]).includes(activeTagFilter));
+  document.getElementById('r-count').textContent=filtered.length+' de '+recipes.length+' receitas';
+  document.getElementById('recipes-grid').innerHTML=filtered.map(r=>{
+    const hasText=r.text&&r.text.trim();
+    const adminBtns=isAdmin?'<div class="rc-btns"><button class="btn-icon" onclick="editRecipe(\''+r.id+'\')" title="Editar">✏️</button><button class="btn-icon" onclick="deleteRecipe(\''+r.id+'\')" title="Remover">🗑️</button></div>':'';
+    const linkPart=r.url?'<a href="'+r.url+'" target="_blank" class="rlink">🔗 Abrir receita</a>':hasText?'<button onclick="viewRecipe(\''+r.id+'\')" style="font-size:12px;color:#78B060;background:none;border:none;cursor:pointer;padding:0">📋 Ver receita completa</button>':'<span class="no-link">Sem link</span>';
+    return'<div class="recipe-card"><div class="rc-hd"><div class="rc-name">'+r.name+'</div>'+adminBtns+'</div><div class="tags-row">'+renderTagBadges(r.tags)+'</div>'+linkPart+'</div>';
+  }).join('')||'<div style="grid-column:1/-1;text-align:center;color:#9AB89A;padding:30px;font-style:italic">Nenhuma receita com este marcador.</div>';
+}
+function switchSrc(src){
+  currentSrc=src;
+  document.getElementById('src-link').classList.toggle('active',src==='link');
+  document.getElementById('src-text').classList.toggle('active',src==='text');
+  document.getElementById('src-link-area').classList.toggle('hidden',src!=='link');
+  document.getElementById('src-text-area').classList.toggle('hidden',src!=='text');
+}
+function openAddRecipe(){
+  editingRecipeId=null;document.getElementById('m-recipe-title').textContent='Nova Receita';
+  ['edit-recipe-id','r-name','r-url','r-text'].forEach(id=>document.getElementById(id).value='');
+  switchSrc('link');renderTagSelector([]);openModal('m-recipe');
+}
+function editRecipe(id){
+  const r=byId(id);if(!r)return;
+  editingRecipeId=id;document.getElementById('m-recipe-title').textContent='Editar Receita';
+  document.getElementById('edit-recipe-id').value=id;
+  document.getElementById('r-name').value=r.name;
+  document.getElementById('r-url').value=r.url||'';
+  document.getElementById('r-text').value=r.text||'';
+  switchSrc((r.text&&r.text.trim()&&!r.url)?'text':'link');
+  renderTagSelector(r.tags||[]);openModal('m-recipe');
+}
+function renderTagSelector(selected){
+  document.getElementById('tag-selector').innerHTML=tags.map(t=>'<div class="tag-sel-chip '+(selected.includes(t.id)?'sel':'')+'" style="background:'+t.color+'" data-tid="'+t.id+'" onclick="this.classList.toggle(\'sel\')">'+t.name+'</div>').join('');
+}
+function saveRecipe(){
+  const name=document.getElementById('r-name').value.trim();if(!name)return;
+  const selTags=[...document.querySelectorAll('#tag-selector .tag-sel-chip.sel')].map(el=>el.dataset.tid).filter(Boolean);
+  const rData={name,url:currentSrc==='link'?document.getElementById('r-url').value.trim():'',text:currentSrc==='text'?document.getElementById('r-text').value.trim():'',tags:selTags};
+  if(editingRecipeId){const idx=recipes.findIndex(r=>r.id===editingRecipeId);if(idx>-1)recipes[idx]={...recipes[idx],...rData};}
+  else{recipes.push({id:'r'+Date.now(),...rData});}
+  closeModal('m-recipe');renderAll();
+}
+function deleteRecipe(id){
+  if(!confirm('Remover esta receita?'))return;
+  recipes=recipes.filter(r=>r.id!==id);
+  Object.keys(menus).forEach(k=>{menus[k].recipeIds=(menus[k].recipeIds||[]).filter(rid=>rid!==id);});renderAll();
+}
+
+// ─── menu/cardápio ────────────────────────────────────────
+function renderModalFilterBar(){
+  const bar=document.getElementById('modal-filter-bar');
+  bar.innerHTML='<button class="mfchip '+(menuFilterTag==='todos'?'active':'')+'" onclick="setMenuFilter(\'todos\')">Todas</button>'+tags.map(t=>'<button class="mfchip '+(menuFilterTag===t.id?'active':'')+'" style="'+(menuFilterTag===t.id?'background:'+t.color+';border-color:'+t.color+';color:#fff':'')+'" onclick="setMenuFilter(\''+t.id+'\')">'+t.name+'</button>').join('');
+}
+function setMenuFilter(tagId){menuFilterTag=tagId;renderModalFilterBar();renderRecipeChecklist();}
+function renderRecipeChecklist(){
+  const sel=(menus[editingDayKey]?.recipeIds||[]);
+  const filtered=menuFilterTag==='todos'?recipes:recipes.filter(r=>(r.tags||[]).includes(menuFilterTag));
+  document.getElementById('recipe-checklist').innerHTML=filtered.length===0
+    ?'<div style="text-align:center;color:#9AB89A;padding:16px;font-style:italic">Nenhuma receita com este marcador.</div>'
+    :filtered.map(r=>{
+      const on=sel.includes(r.id);
+      return'<div class="chk-item '+(on?'sel':'')+'" data-id="'+r.id+'" onclick="this.classList.toggle(\'sel\');this.querySelector(\'.chkbox\').textContent=this.classList.contains(\'sel\')?String.fromCharCode(10003):null"><div class="chkbox">'+(on?'✓':'')+'</div><div><div style="font-size:13px;font-weight:600">'+r.name+'</div><div class="tags-row">'+renderTagBadges(r.tags)+'</div></div></div>';
+    }).join('');
+}
+function openMenuEdit(key){
+  editingDayKey=key;const dates=getWeekDates();
+  const dayIdx=DAYS.findIndex(d=>d.key===key);const dt=dates[dayIdx];
+  document.getElementById('m-menu-title').textContent='Cardápio — '+dt.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+  document.getElementById('menu-note').value=menus[key]?.notes||'';
+  menuFilterTag='todos';renderModalFilterBar();renderRecipeChecklist();openModal('m-menu');
+}
+function saveMenu(){
+  const visibleSel=[...document.querySelectorAll('#recipe-checklist .chk-item.sel')].map(el=>el.dataset.id);
+  const prevSel=menus[editingDayKey]?.recipeIds||[];
+  const visibleIds=new Set([...document.querySelectorAll('#recipe-checklist .chk-item')].map(el=>el.dataset.id));
+  const keptFromOther=prevSel.filter(id=>!visibleIds.has(id));
+  menus[editingDayKey]={recipeIds:[...keptFromOther,...visibleSel],notes:document.getElementById('menu-note').value.trim()};
+  closeModal('m-menu');renderAll();
+}
+
+// ─── compras ──────────────────────────────────────────────
+function switchShopTab(tab){
+  currentShopTab=tab;
+  document.getElementById('tab-semanal').classList.toggle('active',tab==='semanal');
+  document.getElementById('tab-mensal').classList.toggle('active',tab==='mensal');
+  document.getElementById('gen-container').innerHTML='';renderShop();
+}
+function renderShop(){
+  const list=shopping[currentShopTab];const c=document.getElementById('shop-container');
+  if(!list){c.innerHTML='';return;}
+  c.innerHTML=list.categories.map((cat,ci)=>{
+    const itemsHtml=cat.items.map((item,ii)=>{
+      const k=ci+'-'+ii;const on=checks[currentShopTab][k]||false;const bqVal=buyQty[currentShopTab][k]||'';
+      const rightCol='<div class="item-right"><span class="qty-ref">Meta: '+item.qty+'</span><div class="qty-buy-wrap"><span class="qty-buy-label">Comprar:</span><input class="qty-buy-inp" placeholder="ex: 2kg" value="'+bqVal+'" onchange="setBuyQty('+ci+','+ii+',this.value)" onclick="event.stopPropagation()"/></div>'+(isAdmin?'<input class="qty-admin-inp" value="'+item.qty+'" onchange="updateQtyRef('+ci+','+ii+',this.value)" onclick="event.stopPropagation()" title="Editar meta (admin)"/><button class="idel" onclick="delItem('+ci+','+ii+')">🗑</button>':'')+'</div>';
+      return'<div class="shop-item '+(on?'checked':'')+'" id="si-'+ci+'-'+ii+'"><div class="ichk '+(on?'on':'')+'" onclick="toggleCheck('+ci+','+ii+')">'+(on?'✓':'')+'</div><span class="iname">'+item.name+'</span>'+rightCol+'</div>';
+    }).join('');
+    const marked=cat.items.filter((_,ii)=>checks[currentShopTab][ci+'-'+ii]).length;
+    const addRow=isAdmin?'<div class="add-item-row"><input class="aii" id="ni-'+ci+'" placeholder="Novo item..." onkeydown="if(event.key===\'Enter\')addItem('+ci+')"/><input class="aiq" id="nq-'+ci+'" placeholder="Qtd referencia..." onkeydown="if(event.key===\'Enter\')addItem('+ci+')"/><button class="aib" onclick="addItem('+ci+')">+</button></div>':'';
+    return'<div class="shop-category"><div class="shop-cat-hd" onclick="toggleCat('+ci+')"><span>'+cat.name+'</span><span class="shop-cat-count">'+marked+'/'+cat.items.length+' marcados</span></div><div class="shop-items" id="cat-'+ci+'">'+itemsHtml+'</div>'+addRow+'</div>';
+  }).join('');
+  if(isAdmin){c.innerHTML+='<button class="btn-add" style="margin-top:10px" onclick="addCategory()">+ Nova categoria</button>';}
+}
 function toggleCat(ci){const e=document.getElementById('cat-'+ci);e.style.display=e.style.display==='none'?'':'none';}
 function toggleCheck(ci,ii){const k=ci+'-'+ii;checks[currentShopTab][k]=!checks[currentShopTab][k];renderShop();}
 function setBuyQty(ci,ii,val){buyQty[currentShopTab][ci+'-'+ii]=val;}
 function updateQtyRef(ci,ii,v){shopping[currentShopTab].categories[ci].items[ii].qty=v;}
 function checkAll(){const l=shopping[currentShopTab];l.categories.forEach((c,ci)=>c.items.forEach((_,ii)=>{checks[currentShopTab][ci+'-'+ii]=true;}));renderShop();}
 function uncheckAll(){checks[currentShopTab]={};renderShop();}
-function resetAll(){checks[currentShopTab]={};buyQty[currentShopTab]={};renderShop();showToast('\u2705 Resetado!');}
+function resetAll(){checks[currentShopTab]={};buyQty[currentShopTab]={};renderShop();showToast('✅ Resetado!');}
 function delItem(ci,ii){if(!confirm('Remover item?'))return;shopping[currentShopTab].categories[ci].items.splice(ii,1);checks[currentShopTab]={};buyQty[currentShopTab]={};renderShop();}
-function addItem(ci){const n=document.getElementById('ni-'+ci).value.trim();if(!n)return;shopping[currentShopTab].categories[ci].items.push({name:n,qty:document.getElementById('nq-'+ci).value.trim()||'1 unidade'});document.getElementById('ni-'+ci).value='';document.getElementById('nq-'+ci).value='';renderShop();}
+function addItem(ci){
+  const n=document.getElementById('ni-'+ci).value.trim();if(!n)return;
+  shopping[currentShopTab].categories[ci].items.push({name:n,qty:document.getElementById('nq-'+ci).value.trim()||'1 unidade'});
+  document.getElementById('ni-'+ci).value='';document.getElementById('nq-'+ci).value='';renderShop();
+}
 function addCategory(){const name=prompt('Nome da categoria (use emoji + nome):');if(!name)return;shopping[currentShopTab].categories.push({name,items:[]});renderShop();}
-function saveToHistory(lista,tab){const entry={id:'h'+Date.now(),tab,date:new Date().toISOString(),lista};let hist=JSON.parse(localStorage.getItem('cardapio_hist')||'[]');hist.unshift(entry);if(hist.length>10)hist=hist.slice(0,10);localStorage.setItem('cardapio_hist',JSON.stringify(hist));fetch(GIST_API,{method:'PATCH',headers:{'Authorization':'token '+GH_TOKEN,'Accept':'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({files:{'historico.json':{content:JSON.stringify(hist,null,2)}}})}).catch(()=>{});renderHistorico();}
-async function loadHistorico(){try{const res=await fetch('https://gist.githubusercontent.com/biaxmachado-jpg/'+GIST_ID+'/raw/historico.json?t='+Date.now());if(res.ok){const d=await res.json();if(Array.isArray(d)&&d.length>0){localStorage.setItem('cardapio_hist',JSON.stringify(d));}}}catch(e){}renderHistorico();}
-function renderHistorico(){const hist=JSON.parse(localStorage.getItem('cardapio_hist')||'[]');const c=document.getElementById('hist-container');if(!hist.length){c.innerHTML='<p style="color:#9AB89A;font-style:italic;text-align:center;padding:40px">Nenhuma lista gerada ainda.<br><br>Gere uma lista na aba Compras para ela aparecer aqui.</p>';return;}c.innerHTML=hist.map((entry,idx)=>{const dt=new Date(entry.date).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',weekday:'short',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});const totalItens=entry.lista.reduce((s,cat)=>s+cat.itens.length,0);return'<div class="hist-card"><div class="hist-hd" onclick="toggleHist('+idx+')"><div class="hist-meta"><div class="hist-title">\ud83d\uded2 Lista '+entry.tab+' \u2014 '+totalItens+' itens</div><div class="hist-date">'+dt+'</div></div><span class="hist-badge '+(entry.tab==='Mensal'?'mensal':'')+'" >'+entry.tab+'</span></div><div class="hist-body" id="hb-'+idx+'">'+entry.lista.map(cat=>'<div class="hist-cat"><div class="hist-cat-name">'+cat.categoria+'</div>'+cat.itens.map(i=>'<div class="hist-item"><span>'+i.nome+'</span><span class="hist-qty">'+i.comprar+'</span></div>').join('')+'</div>').join('')+'<div class="hist-actions"><button class="btn-copy" onclick="copyList('+idx+')">&#128203; Copiar texto</button><button class="btn-resend" onclick="resendList('+idx+')">&#128242; Reenviar para Bia</button><button class="btn-del-hist" onclick="deleteHist('+idx+')">&#128465; Remover</button></div></div></div>';}).join('');}
-function toggleHist(idx){const el=document.getElementById('hb-'+idx);el.classList.toggle('open');}
-function copyList(idx){const hist=JSON.parse(localStorage.getItem('cardapio_hist')||'[]');const entry=hist[idx];if(!entry)return;const dt=new Date(entry.date).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});let txt='\ud83d\uded2 LISTA DE COMPRAS '+entry.tab.toUpperCase()+'\n\ud83d\udcc5 '+dt+'\n\n';entry.lista.forEach(cat=>{txt+=cat.categoria.toUpperCase()+'\n';cat.itens.forEach(i=>{txt+='\u2022 '+i.nome+' \u2014 '+i.comprar+'\n';});txt+='\n';});navigator.clipboard.writeText(txt).then(()=>showToast('\u2705 Lista copiada!')).catch(()=>showToast('\u274c Erro ao copiar'));}
-async function resendList(idx){const hist=JSON.parse(localStorage.getItem('cardapio_hist')||'[]');const entry=hist[idx];if(!entry)return;showToast('\ud83d\udcf2 Reenviando...');try{const res=await fetch(WH_LISTA,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lista:entry.lista,tab:entry.tab})});const data=await res.json();showToast(data.ok?'\u2705 Lista reenviada!':'\u274c Falha ao reenviar.');}catch(e){showToast('\u274c Sem conex\u00e3o.');}}
-function deleteHist(idx){if(!confirm('Remover esta lista do hist\u00f3rico?'))return;let hist=JSON.parse(localStorage.getItem('cardapio_hist')||'[]');hist.splice(idx,1);localStorage.setItem('cardapio_hist',JSON.stringify(hist));renderHistorico();}
-async function generateAndSend(){const list=shopping[currentShopTab];const result=[];list.categories.forEach((cat,ci)=>{const itens=cat.items.filter((_,ii)=>checks[currentShopTab][ci+'-'+ii]).map(item=>{const ii=cat.items.indexOf(item);const bq=buyQty[currentShopTab][ci+'-'+ii]||'';return{nome:item.name,qty:item.qty,comprar:bq||item.qty};});if(itens.length>0)result.push({categoria:cat.name,itens});});const container=document.getElementById('gen-container');if(result.length===0){container.innerHTML='<div class="gen-list"><div class="empty-gen">Nenhum item marcado! Marque o que precisa comprar primeiro.</div></div>';return;}const now=new Date();const tabLabel=currentShopTab==='semanal'?'Semanal':'Mensal';saveToHistory(result,tabLabel);container.innerHTML='<div class="gen-list"><div class="gen-hd"><div><div class="gen-title">\ud83d\uded2 Lista de Compras '+tabLabel+'</div><div class="gen-date">Gerada em '+fmtDT(now)+'</div></div><button class="btn-print" onclick="window.print()">\ud83d\udda8 Imprimir</button></div>'+result.map(({categoria,itens})=>'<div class="gen-cat"><div class="gen-cat-name">'+categoria+'</div>'+itens.map(i=>'<div class="gen-item"><span>'+i.nome+'</span><span class="gen-qty">'+(i.comprar!==i.qty?'<s style="color:#CCC">'+i.qty+'</s> \u2192 '+i.comprar:i.qty)+'</span></div>').join('')+'</div>').join('')+'<div id="send-status" class="send-status">\ud83d\udcf2 Enviando para o WhatsApp da Bia...</div></div>';container.scrollIntoView({behavior:'smooth',block:'start'});try{const res=await fetch(WH_LISTA,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lista:result,tab:tabLabel})});const data=await res.json();const el=document.getElementById('send-status');if(data.ok){el.textContent='\u2705 Lista enviada para o WhatsApp da Bia!';el.style.background='#D4EDDA';el.style.color='#155724';}else{el.textContent='\u26a0\ufe0f Lista salva no Hist\u00f3rico! Falha no WhatsApp.';el.style.background='#FFF3CD';el.style.color='#856404';}}catch(e){const el=document.getElementById('send-status');el.textContent='\u26a0\ufe0f Lista salva no Hist\u00f3rico! WhatsApp indispon\u00edvel agora.';el.style.background='#FFF3CD';el.style.color='#856404';}}
-function renderAll(){renderWeekBar();renderCardapio();renderReceitas();renderShop();renderHistorico();}
-document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
-(async()=>{const ok=await loadFromGist();await loadHistorico();if(ok)renderAll();else document.getElementById('loading-c').innerHTML='\u274c Erro ao carregar. Verifique a conex\u00e3o e recarregue.';})();
 
+// ─── histórico ────────────────────────────────────────────
+function renderHistorico(){
+  const hist=historicoList;
+  const c=document.getElementById('hist-container');
+  if(!hist||!hist.length){
+    c.innerHTML='<p style="color:#9AB89A;font-style:italic;text-align:center;padding:40px">Nenhuma lista gerada ainda.<br><br>Gere uma lista na aba Compras para ela aparecer aqui.</p>';return;
+  }
+  c.innerHTML=hist.map((entry,idx)=>{
+    const dt=new Date(entry.date).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',weekday:'short',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    const totalItens=entry.lista.reduce((s,cat)=>s+cat.itens.length,0);
+    return'<div class="hist-card"><div class="hist-hd" onclick="toggleHist('+idx+')"><div class="hist-meta"><div class="hist-title">🛒 Lista '+entry.tab+' — '+totalItens+' itens</div><div class="hist-date">'+dt+'</div></div><span class="hist-badge '+(entry.tab==='Mensal'?'mensal':'')+'" >'+entry.tab+'</span></div><div class="hist-body" id="hb-'+idx+'">'+entry.lista.map(cat=>'<div class="hist-cat"><div class="hist-cat-name">'+cat.categoria+'</div>'+cat.itens.map(i=>'<div class="hist-item"><span>'+i.nome+'</span><span class="hist-qty">'+i.comprar+'</span></div>').join('')+'</div>').join('')+'<div class="hist-actions"><button class="btn-copy" onclick="copyList('+idx+')">📋 Copiar texto</button><button class="btn-resend" onclick="resendList('+idx+')">📲 Reenviar para Bia</button><button class="btn-del-hist" onclick="deleteHist('+idx+')">🗑 Remover</button></div></div></div>';
+  }).join('');
+}
+function toggleHist(idx){const el=document.getElementById('hb-'+idx);el.classList.toggle('open');}
+function copyList(idx){
+  const entry=historicoList[idx];if(!entry)return;
+  const dt=new Date(entry.date).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  let txt='🛒 LISTA DE COMPRAS '+entry.tab.toUpperCase()+'\n📅 '+dt+'\n\n';
+  entry.lista.forEach(cat=>{txt+=cat.categoria.toUpperCase()+'\n';cat.itens.forEach(i=>{txt+='• '+i.nome+' — '+i.comprar+'\n';});txt+='\n';});
+  navigator.clipboard.writeText(txt).then(()=>showToast('✅ Lista copiada!')).catch(()=>showToast('❌ Erro ao copiar'));
+}
+async function resendList(idx){
+  const entry=historicoList[idx];if(!entry)return;
+  showToast('📲 Reenviando...');
+  try{
+    const res=await fetch(WH_LISTA,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lista:entry.lista,tab:entry.tab})});
+    const data=await res.json();
+    showToast(data.ok?'✅ Lista reenviada!':'❌ Falha ao reenviar.');
+  }catch(e){showToast('❌ Sem conexão.');}
+}
+async function deleteHist(idx){
+  if(!confirm('Remover esta lista do histórico?'))return;
+  const entry=historicoList[idx];
+  if(entry&&entry.id){
+    try{await deleteDoc(doc(db,'historico',entry.id));}catch(e){}
+  }
+  historicoList.splice(idx,1);
+  renderHistorico();
+}
+
+async function generateAndSend(){
+  const list=shopping[currentShopTab];const result=[];
+  list.categories.forEach((cat,ci)=>{
+    const itens=cat.items.filter((_,ii)=>checks[currentShopTab][ci+'-'+ii]).map(item=>{
+      const ii=cat.items.indexOf(item);const bq=buyQty[currentShopTab][ci+'-'+ii]||'';
+      return{nome:item.name,qty:item.qty,comprar:bq||item.qty};
+    });
+    if(itens.length>0)result.push({categoria:cat.name,itens});
+  });
+  const container=document.getElementById('gen-container');
+  if(result.length===0){container.innerHTML='<div class="gen-list"><div class="empty-gen">Nenhum item marcado! Marque o que precisa comprar primeiro.</div></div>';return;}
+  const now=new Date();const tabLabel=currentShopTab==='semanal'?'Semanal':'Mensal';
+  await saveToHistory(result,tabLabel);
+  container.innerHTML='<div class="gen-list"><div class="gen-hd"><div><div class="gen-title">🛒 Lista de Compras '+tabLabel+'</div><div class="gen-date">Gerada em '+fmtDT(now)+'</div></div><button class="btn-print" onclick="window.print()">🖨 Imprimir</button></div>'+result.map(({categoria,itens})=>'<div class="gen-cat"><div class="gen-cat-name">'+categoria+'</div>'+itens.map(i=>'<div class="gen-item"><span>'+i.nome+'</span><span class="gen-qty">'+(i.comprar!==i.qty?'<s style="color:#CCC">'+i.qty+'</s> → '+i.comprar:i.qty)+'</span></div>').join('')+'</div>').join('')+'<div id="send-status" class="send-status">📲 Enviando para o WhatsApp da Bia...</div></div>';
+  container.scrollIntoView({behavior:'smooth',block:'start'});
+  try{
+    const res=await fetch(WH_LISTA,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lista:result,tab:tabLabel})});
+    const data=await res.json();const el=document.getElementById('send-status');
+    if(data.ok){el.textContent='✅ Lista enviada para o WhatsApp da Bia!';el.style.background='#D4EDDA';el.style.color='#155724';}
+    else{el.textContent='⚠️ Lista salva no Histórico! Falha no WhatsApp.';el.style.background='#FFF3CD';el.style.color='#856404';}
+  }catch(e){
+    const el=document.getElementById('send-status');
+    el.textContent='⚠️ Lista salva no Histórico! WhatsApp indisponível agora.';
+    el.style.background='#FFF3CD';el.style.color='#856404';
+  }
+}
+
+// ─── render geral ─────────────────────────────────────────
+function renderAll(){renderWeekBar();renderCardapio();renderReceitas();renderShop();renderHistorico();}
+
+// ─── fechar modal ao clicar fora ──────────────────────────
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+// ─── expor funções para o HTML inline ─────────────────────
+Object.assign(window,{
+  changeWeek,goToThisWeek,switchView,saveData,openPin,checkPin,
+  renderCardapio,viewRecipe,renderTagManager,addTag,deleteTag,filterByTag,
+  openAddRecipe,editRecipe,switchSrc,saveRecipe,deleteRecipe,
+  setMenuFilter,openMenuEdit,saveMenu,
+  switchShopTab,toggleCat,toggleCheck,setBuyQty,updateQtyRef,
+  checkAll,uncheckAll,resetAll,delItem,addItem,addCategory,generateAndSend,
+  toggleHist,copyList,resendList,deleteHist
+});
+
+// ─── inicialização ────────────────────────────────────────
+(async()=>{
+  const ok=await loadFromFirebase();
+  if(ok){renderAll();}
+  else {
+    document.getElementById('loading-c').innerHTML=
+      '<p style="color:#C07A7A;padding:20px;text-align:center">⚠️ Erro ao conectar com o banco de dados.<br>Verifique as configurações do Firebase.</p>';
+  }
+})();
 </script>
 </body>
 </html>
